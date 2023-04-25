@@ -63,7 +63,7 @@ void buts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
   double tmat[ISIZ1][5][5];
   //sync_left( ldmx, ldmy, ldmz, v );
 
-   #pragma acc parallel loop private(i, j, m)
+   //#pragma acc parallel loop private(i, j, m)
   //#pragma omp for schedule(static) nowait
   for (j = jend - 1; j >= jst; j--) {
     for (i = iend - 1; i >= ist; i--) {
