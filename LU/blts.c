@@ -86,8 +86,10 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
   #pragma acc enter data copyin(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
   printf("After copyin\n");
   for (diag = jst; diag < jend; diag++) {
+    printf("diag %d \n", diag);
     #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= diag - jst; t++) {
+      printf("%d ", t);
       j = diag - t;
       i = jst + t;
       for (m = 0; m < 5; m++) {
