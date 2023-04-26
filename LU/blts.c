@@ -89,7 +89,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
     printf("diag %d \n", diag);
     #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= diag - jst; t++) {
-      printf("%d ", t);
+      printf("t %d \n", t);
       j = diag - t;
       i = jst + t;
       for (m = 0; m < 5; m++) {
@@ -105,6 +105,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
                     + ldy[j][i][4][m] * vk[j-1][i][4]
                     + ldx[j][i][4][m] * vk[j][i-1][4] );
       }
+      printf("AAAA");
 
       //---------------------------------------------------------------------
       // diagonal block inversion
@@ -118,7 +119,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
         tmat[j][m][3] = d[j][i][3][m];
         tmat[j][m][4] = d[j][i][4][m];
       }
-
+      printf("BBBB");
       tmp1 = 1.0 / tmat[j][0][0];
       tmp = tmp1 * tmat[j][1][0];
       tmat[j][1][1] =  tmat[j][1][1] - tmp * tmat[j][0][1];
@@ -182,7 +183,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       tmp = tmp1 * tmat[j][4][3];
       tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][3][4];
       tv[j][4] = tv[j][4] - tv[j][3] * tmp;
-
+      printf("CCCC");
       //---------------------------------------------------------------------
       // back substitution
       //---------------------------------------------------------------------
@@ -209,6 +210,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
         - tmat[j][0][3] * vk[j][i][3]
         - tmat[j][0][4] * vk[j][i][4];
       vk[j][i][0] = tv[j][0] / tmat[j][0][0];
+      printf("DDDD");
     }
   }
   printf("Before del\n");
