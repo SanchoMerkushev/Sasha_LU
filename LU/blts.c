@@ -81,9 +81,10 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       }
     }
   }
+  printf("11\n");
   //#pragma omp for schedule(static) nowait
-  #pragma acc enter data create(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5]) \
-  copy(d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], vk[:ISIZ1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
+  #pragma acc enter data copyin(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], \
+  vk[:ISIZ1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
   for (diag = jst; diag < jend; diag++) {
     #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= diag - jst; t++) {
@@ -208,7 +209,9 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       vk[j][i][0] = tv[j][0] / tmat[j][0][0];
     }
   }
-  #pragma acc exit data
+  #pragma acc exit data copyout(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], \
+  vk[:ISIZ1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
+  printf("22\n");
   for (diag = jst + 1; diag < jend; diag++) {
     //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= (jend - jst) - diag; t++) {
