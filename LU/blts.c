@@ -215,7 +215,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
     }
   }
   printf("Before del\n");
-  #pragma acc exit data delete(tv, tmat, d, vk, ldy, ldy)
+  //#pragma acc exit data delete(tv, tmat, d, vk, ldy, ldy)
   printf("After del\n");
   for (diag = jst + 1; diag < jend; diag++) {
     //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
