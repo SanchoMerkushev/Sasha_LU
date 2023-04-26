@@ -92,6 +92,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       printf("t %d \n", t);
       j = diag - t;
       i = jst + t;
+      printf("0000000");
       for (m = 0; m < 5; m++) {
         tv[j][m] =  vk[j][i][m]
           - omega * ( ldy[j][i][0][m] * vk[j-1][i][0]
