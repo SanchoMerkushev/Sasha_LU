@@ -81,20 +81,14 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       }
     }
   }
-  printf("Before copyin\n");
   //#pragma omp for schedule(static) nowait
-  #pragma acc enter data copyin(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
-  printf("After copyin\n");
+  //#pragma acc enter data copyin(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
   for (diag = jst; diag < jend; diag++) {
-    printf("diag %d \n", diag);
     #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= diag - jst; t++) {
-      printf("t %d \n", t);
       j = diag - t;
       i = jst + t;
-      printf("0000000");
       for (m = 0; m < 5; m++) {
-        printf("m = %d\n", m);
         tv[j][m] =  vk[j][i][m]
           - omega * ( ldy[j][i][0][m] * vk[j-1][i][0]
                     + ldx[j][i][0][m] * vk[j][i-1][0]
@@ -107,8 +101,6 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
                     + ldy[j][i][4][m] * vk[j-1][i][4]
                     + ldx[j][i][4][m] * vk[j][i-1][4] );
       }
-      printf("AAAA");
-
       //---------------------------------------------------------------------
       // diagonal block inversion
       // 
@@ -121,7 +113,6 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
         tmat[j][m][3] = d[j][i][3][m];
         tmat[j][m][4] = d[j][i][4][m];
       }
-      printf("BBBB");
       tmp1 = 1.0 / tmat[j][0][0];
       tmp = tmp1 * tmat[j][1][0];
       tmat[j][1][1] =  tmat[j][1][1] - tmp * tmat[j][0][1];
@@ -185,7 +176,6 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       tmp = tmp1 * tmat[j][4][3];
       tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][3][4];
       tv[j][4] = tv[j][4] - tv[j][3] * tmp;
-      printf("CCCC");
       //---------------------------------------------------------------------
       // back substitution
       //---------------------------------------------------------------------
@@ -212,12 +202,9 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
         - tmat[j][0][3] * vk[j][i][3]
         - tmat[j][0][4] * vk[j][i][4];
       vk[j][i][0] = tv[j][0] / tmat[j][0][0];
-      printf("DDDD");
     }
   }
-  printf("Before del\n");
-  #pragma acc exit data copyout(tv, tmat, d, vk, ldy, ldy)
-  printf("After del\n");
+  //#pragma acc exit data copyout(tv, tmat, d, vk, ldy, ldy)
   for (diag = jst + 1; diag < jend; diag++) {
     //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= (jend - jst) - diag; t++) {
