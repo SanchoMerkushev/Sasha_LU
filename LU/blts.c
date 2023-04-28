@@ -82,7 +82,8 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
     }
   }
   //#pragma omp for schedule(static) nowait
-  //#pragma acc enter data copyin(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
+  #pragma acc enter data create(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5])\
+   copyin(d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
   for (diag = jst; diag < jend; diag++) {
     #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= diag - jst; t++) {
@@ -95,7 +96,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
                     + ldy[j][i][1][m] * vk[j-1][i][1]
                     + ldx[j][i][1][m] * vk[j][i-1][1]
                     + ldy[j][i][2][m] * vk[j-1][i][2]
-                    + ldx[j][i][2][m] * vk[j][i-1][2]
+                    + ldx[j][i][2][m] * vk[j][i-1][2] 
                     + ldy[j][i][3][m] * vk[j-1][i][3]
                     + ldx[j][i][3][m] * vk[j][i-1][3]
                     + ldy[j][i][4][m] * vk[j-1][i][4]
@@ -204,7 +205,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       vk[j][i][0] = tv[j][0] / tmat[j][0][0];
     }
   }
-  //#pragma acc exit data copyout(tv, tmat, d, vk, ldy, ldy)
+  #pragma acc exit data copyout(tv, tmat, d, vk, ldx, ldy) 
   for (diag = jst + 1; diag < jend; diag++) {
     //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= (jend - jst) - diag; t++) {
