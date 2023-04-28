@@ -205,7 +205,8 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       vk[j][i][0] = tv[j][0] / tmat[j][0][0];
     }
   }
-  #pragma acc exit data copyout(tv, tmat, d, vk, ldx, ldy) 
+  #pragma acc enter data delete(tv, tmat)\
+   copyout(d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
   for (diag = jst + 1; diag < jend; diag++) {
     //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= (jend - jst) - diag; t++) {
