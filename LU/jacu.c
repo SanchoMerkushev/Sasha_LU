@@ -53,7 +53,7 @@ void jacu(int k)
   c34 = C3 * C4;
 
   //#pragma omp for schedule(static) nowait
-  //#pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3)
+  #pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3)
   for (j = jend - 1; j >= jst; j--) {
     for (i = iend - 1; i >= ist; i--) {
       //---------------------------------------------------------------------
