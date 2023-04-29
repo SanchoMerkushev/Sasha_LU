@@ -63,16 +63,16 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
 
   //sync_left( ldmx, ldmy, ldmz, v );
 
-  double (*vk)[ldmx/2*2+1][5] = v[k];
+  //double (*vk)[ldmx/2*2+1][5] = v[k];
   double (*vkm1)[ldmx/2*2+1][5] = v[k-1];
-
+  printf("%d\n", ISIZ1);
 
   //#pragma omp for schedule(static) nowait
   //#pragma acc parallel loop private(i, j, m)
   for (j = jst; j < jend; j++) {
     for (i = ist; i < iend; i++) {
       for (m = 0; m < 5; m++) {
-        vk[j][i][m] =  vk[j][i][m]
+        v[k][j][i][m] =  v[k][j][i][m]
           - omega * (  ldz[j][i][0][m] * vkm1[j][i][0]
                      + ldz[j][i][1][m] * vkm1[j][i][1]
                      + ldz[j][i][2][m] * vkm1[j][i][2]
@@ -82,24 +82,24 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
     }
   }
   //#pragma omp for schedule(static) nowait
-  #pragma acc enter data copyin(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
+  #pragma acc enter data copyin(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], v[:ISIZ1][:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5], diag)
   for (diag = jst; diag < jend; diag++) {
     #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= diag - jst; t++) {
       j = diag - t;
       i = jst + t;
       for (m = 0; m < 5; m++) {
-        tv[j][m] =  vk[j][i][m]
-          - omega * ( ldy[j][i][0][m] * vk[j-1][i][0]
-                    + ldx[j][i][0][m] * vk[j][i-1][0]
-                    + ldy[j][i][1][m] * vk[j-1][i][1]
-                    + ldx[j][i][1][m] * vk[j][i-1][1]
-                    + ldy[j][i][2][m] * vk[j-1][i][2]
-                    + ldx[j][i][2][m] * vk[j][i-1][2] 
-                    + ldy[j][i][3][m] * vk[j-1][i][3]
-                    + ldx[j][i][3][m] * vk[j][i-1][3]
-                    + ldy[j][i][4][m] * vk[j-1][i][4]
-                    + ldx[j][i][4][m] * vk[j][i-1][4] );
+        tv[j][m] =  v[k][j][i][m]
+          - omega * ( ldy[j][i][0][m] * v[k][j-1][i][0]
+                    + ldx[j][i][0][m] * v[k][j][i-1][0]
+                    + ldy[j][i][1][m] * v[k][j-1][i][1]
+                    + ldx[j][i][1][m] * v[k][j][i-1][1]
+                    + ldy[j][i][2][m] * v[k][j-1][i][2]
+                    + ldx[j][i][2][m] * v[k][j][i-1][2] 
+                    + ldy[j][i][3][m] * v[k][j-1][i][3]
+                    + ldx[j][i][3][m] * v[k][j][i-1][3]
+                    + ldy[j][i][4][m] * v[k][j-1][i][4]
+                    + ldx[j][i][4][m] * v[k][j][i-1][4] );
       }
       //---------------------------------------------------------------------
       // diagonal block inversion
@@ -179,49 +179,49 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       //---------------------------------------------------------------------
       // back substitution
       //---------------------------------------------------------------------
-      vk[j][i][4] = tv[j][4] / tmat[j][4][4];
+      v[k][j][i][4] = tv[j][4] / tmat[j][4][4];
 
       tv[j][3] = tv[j][3] 
-        - tmat[j][3][4] * vk[j][i][4];
-      vk[j][i][3] = tv[j][3] / tmat[j][3][3];
+        - tmat[j][3][4] * v[k][j][i][4];
+      v[k][j][i][3] = tv[j][3] / tmat[j][3][3];
 
       tv[j][2] = tv[j][2]
-        - tmat[j][2][3] * vk[j][i][3]
-        - tmat[j][2][4] * vk[j][i][4];
-      vk[j][i][2] = tv[j][2] / tmat[j][2][2];
+        - tmat[j][2][3] * v[k][j][i][3]
+        - tmat[j][2][4] * v[k][j][i][4];
+      v[k][j][i][2] = tv[j][2] / tmat[j][2][2];
 
       tv[j][1] = tv[j][1]
-        - tmat[j][1][2] * vk[j][i][2]
-        - tmat[j][1][3] * vk[j][i][3]
-        - tmat[j][1][4] * vk[j][i][4];
-      vk[j][i][1] = tv[j][1] / tmat[j][1][1];
+        - tmat[j][1][2] * v[k][j][i][2]
+        - tmat[j][1][3] * v[k][j][i][3]
+        - tmat[j][1][4] * v[k][j][i][4];
+      v[k][j][i][1] = tv[j][1] / tmat[j][1][1];
 
       tv[j][0] = tv[j][0]
-        - tmat[j][0][1] * vk[j][i][1]
-        - tmat[j][0][2] * vk[j][i][2]
-        - tmat[j][0][3] * vk[j][i][3]
-        - tmat[j][0][4] * vk[j][i][4];
-      vk[j][i][0] = tv[j][0] / tmat[j][0][0];
+        - tmat[j][0][1] * v[k][j][i][1]
+        - tmat[j][0][2] * v[k][j][i][2]
+        - tmat[j][0][3] * v[k][j][i][3]
+        - tmat[j][0][4] * v[k][j][i][4];
+      v[k][j][i][0] = tv[j][0] / tmat[j][0][0];
     }
   }
-    #pragma acc exit data copyout(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
+    #pragma acc exit data copyout(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], v[:ISIZ1][:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5], diag)
   for (diag = jst + 1; diag < jend; diag++) {
     //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= (jend - jst) - diag; t++) {
       j = jend - 1 - t;
       i = diag + t;
       for (m = 0; m < 5; m++) {
-        tv[j][m] =  vk[j][i][m]
-          - omega * ( ldy[j][i][0][m] * vk[j-1][i][0]
-                    + ldx[j][i][0][m] * vk[j][i-1][0]
-                    + ldy[j][i][1][m] * vk[j-1][i][1]
-                    + ldx[j][i][1][m] * vk[j][i-1][1]
-                    + ldy[j][i][2][m] * vk[j-1][i][2]
-                    + ldx[j][i][2][m] * vk[j][i-1][2]
-                    + ldy[j][i][3][m] * vk[j-1][i][3]
-                    + ldx[j][i][3][m] * vk[j][i-1][3]
-                    + ldy[j][i][4][m] * vk[j-1][i][4]
-                    + ldx[j][i][4][m] * vk[j][i-1][4] );
+        tv[j][m] =  v[k][j][i][m]
+          - omega * ( ldy[j][i][0][m] * v[k][j-1][i][0]
+                    + ldx[j][i][0][m] * v[k][j][i-1][0]
+                    + ldy[j][i][1][m] * v[k][j-1][i][1]
+                    + ldx[j][i][1][m] * v[k][j][i-1][1]
+                    + ldy[j][i][2][m] * v[k][j-1][i][2]
+                    + ldx[j][i][2][m] * v[k][j][i-1][2]
+                    + ldy[j][i][3][m] * v[k][j-1][i][3]
+                    + ldx[j][i][3][m] * v[k][j][i-1][3]
+                    + ldy[j][i][4][m] * v[k][j-1][i][4]
+                    + ldx[j][i][4][m] * v[k][j][i-1][4] );
       }
 
       //---------------------------------------------------------------------
@@ -304,29 +304,29 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
       //---------------------------------------------------------------------
       // back substitution
       //---------------------------------------------------------------------
-      vk[j][i][4] = tv[j][4] / tmat[j][4][4];
+      v[k][j][i][4] = tv[j][4] / tmat[j][4][4];
 
       tv[j][3] = tv[j][3] 
-        - tmat[j][3][4] * vk[j][i][4];
-      vk[j][i][3] = tv[j][3] / tmat[j][3][3];
+        - tmat[j][3][4] * v[k][j][i][4];
+      v[k][j][i][3] = tv[j][3] / tmat[j][3][3];
 
       tv[j][2] = tv[j][2]
-        - tmat[j][2][3] * vk[j][i][3]
-        - tmat[j][2][4] * vk[j][i][4];
-      vk[j][i][2] = tv[j][2] / tmat[j][2][2];
+        - tmat[j][2][3] * v[k][j][i][3]
+        - tmat[j][2][4] * v[k][j][i][4];
+      v[k][j][i][2] = tv[j][2] / tmat[j][2][2];
 
       tv[j][1] = tv[j][1]
-        - tmat[j][1][2] * vk[j][i][2]
-        - tmat[j][1][3] * vk[j][i][3]
-        - tmat[j][1][4] * vk[j][i][4];
-      vk[j][i][1] = tv[j][1] / tmat[j][1][1];
+        - tmat[j][1][2] * v[k][j][i][2]
+        - tmat[j][1][3] * v[k][j][i][3]
+        - tmat[j][1][4] * v[k][j][i][4];
+      v[k][j][i][1] = tv[j][1] / tmat[j][1][1];
 
       tv[j][0] = tv[j][0]
-        - tmat[j][0][1] * vk[j][i][1]
-        - tmat[j][0][2] * vk[j][i][2]
-        - tmat[j][0][3] * vk[j][i][3]
-        - tmat[j][0][4] * vk[j][i][4];
-      vk[j][i][0] = tv[j][0] / tmat[j][0][0];
+        - tmat[j][0][1] * v[k][j][i][1]
+        - tmat[j][0][2] * v[k][j][i][2]
+        - tmat[j][0][3] * v[k][j][i][3]
+        - tmat[j][0][4] * v[k][j][i][4];
+      v[k][j][i][0] = tv[j][0] / tmat[j][0][0];
     }
   }
 
