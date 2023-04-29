@@ -55,7 +55,7 @@ void error()
   }
 
   //#pragma omp parallel default(shared) private(i,j,k,m,tmp,u000ijk,errnm_local)
-  #pragma acc parallel private(i,j,k,m,tmp,u000ijk,errnm_local)
+  //#pragma acc parallel private(i,j,k,m,tmp,u000ijk,errnm_local)
   {
   for (m = 0; m < 5; m++) {
     errnm_local[m] = 0.0;
@@ -75,7 +75,7 @@ void error()
   }
   for (m = 0; m < 5; m++) {
     //#pragma omp atomic
-    #pragma acc atomic
+    //#pragma acc atomic
     errnm[m] += errnm_local[m];
   }
   } //end parallel

@@ -52,7 +52,7 @@ void setbv()
                                        shared(nx,ny,nz)
   {
   //#pragma omp for schedule(static)
-  #pragma acc parallel loop private(i,j,m,temp1,temp2)
+  //#pragma acc parallel loop private(i,j,m,temp1,temp2)
   for (j = 0; j < ny; j++) {
     for (i = 0; i < nx; i++) {
       exact( i, j, 0, temp1 );
@@ -68,7 +68,7 @@ void setbv()
   // set the dependent variable values along north and south faces
   //---------------------------------------------------------------------
   //#pragma omp for schedule(static) nowait
-  #pragma acc parallel loop private(i,k,m,temp1,temp2)
+  //#pragma acc parallel loop private(i,k,m,temp1,temp2)
   for (k = 0; k < nz; k++) {
     for (i = 0; i < nx; i++) {
       exact( i, 0, k, temp1 );
@@ -84,7 +84,7 @@ void setbv()
   // set the dependent variable values along east and west faces
   //---------------------------------------------------------------------
   //#pragma omp for schedule(static) nowait
-  #pragma acc parallel loop private(j,k,m,temp1,temp2)
+  //#pragma acc parallel loop private(j,k,m,temp1,temp2)
   for (k = 0; k < nz; k++) {
     for (j = 0; j < ny; j++) {
       exact( 0, j, k, temp1 );
