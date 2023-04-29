@@ -54,7 +54,7 @@ void setiv()
   //#pragma omp parallel for default(shared) private(i,j,k,m,pxi,peta,pzeta, \
               xi,eta,zeta,ue_ijnz,ue_ij1,ue_iny0k,ue_i1k,ue_nx0jk,ue_1jk)  \
               shared(nx0,ny0,nz)
-  //#pragma acc parallel loop private(i,j,k,m,pxi,peta,pzeta, \
+  #pragma acc parallel loop private(i,j,k,m,pxi,peta,pzeta, \
               xi,eta,zeta,ue_ijnz,ue_ij1,ue_iny0k,ue_i1k,ue_nx0jk,ue_1jk)
   for (k = 1; k < nz - 1; k++) {
     zeta = ( (double)k ) / (nz-1);

@@ -62,7 +62,7 @@ void erhs()
                    u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
   {
   //#pragma omp for schedule(static) nowait
-  //#pragma acc parallel loop
+  #pragma acc parallel loop
   for (k = 0; k < nz; k++) {
     for (j = 0; j < ny; j++) {
       for (i = 0; i < nx; i++) {
@@ -74,7 +74,7 @@ void erhs()
   }
 
   //#pragma omp for schedule(static)
-  //#pragma acc parallel loop
+  #pragma acc parallel loop
   for (k = 0; k < nz; k++) {
     zeta = ( (double)k ) / ( nz - 1 );
     for (j = 0; j < ny; j++) {

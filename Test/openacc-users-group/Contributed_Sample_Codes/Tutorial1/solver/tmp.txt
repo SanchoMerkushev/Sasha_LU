@@ -1,2 +1,0 @@
-make c++ OPT="-ta=multicore -Minfo=accel"
-make c++ OPT="-ta=tesla:managed -Minfo=accel"

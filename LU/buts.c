@@ -63,7 +63,7 @@ void buts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
   double tmat[ISIZ1][5][5];
   //sync_left( ldmx, ldmy, ldmz, v );
 
-   //#pragma acc parallel loop private(i, j, m)
+   #pragma acc parallel loop private(i, j, m)
   //#pragma omp for schedule(static) nowait
   for (j = jend - 1; j >= jst; j--) {
     for (i = iend - 1; i >= ist; i--) {
@@ -81,7 +81,7 @@ void buts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
   //#pragma omp for schedule(static) nowait
   //#pragma acc parallel loop private(i, j, m, tmp, tmp1)
   for (diag = jend - 1; diag > jst; diag--) {
-    //#pragma acc parallel loop private(i, j, m, tmp, tmp1, diag, t)
+    #pragma acc parallel loop private(i, j, m, tmp, tmp1, diag, t)
     for (t = 0; t <= (jend - jst) - diag; t++) {
        j = jend - 1 - t;
        i = diag + t;
@@ -208,7 +208,7 @@ void buts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
     }
   }
   for (diag = jend  - 1; diag >= jst; diag--) {
-    //#pragma acc parallel loop private(i, j, m, tmp, tmp1, diag, t)
+    #pragma acc parallel loop private(i, j, m, tmp, tmp1, diag, t)
     for (t = 0; t <= diag - jst; t++) {
       j = diag - t;
       i = jst + t;

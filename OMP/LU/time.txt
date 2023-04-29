@@ -1,2 +1,0 @@
-class A
-class B 23.83 22.86

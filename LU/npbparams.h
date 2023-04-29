@@ -16,12 +16,12 @@
 #define DT_DEFAULT     2.0
 
 #define CONVERTDOUBLE  false
-#define COMPILETIME "26 Apr 2023"
+#define COMPILETIME "22 Apr 2023"
 #define NPBVERSION "3.3.1"
-#define CS1 "nvc"
+#define CS1 "pgcc"
 #define CS2 "$(CC)"
 #define CS3 "-lm"
 #define CS4 "-I../common"
-#define CS5 "-g -Wall -O3 -acc -ta=nvidia -Minfo=all -mc..."
-#define CS6 "-O3 -acc -ta=nvidia -Minfo=all  -mcmodel=me..."
+#define CS5 "-g -Wall -O3 -acc -ta=multicore -mcmodel=me..."
+#define CS6 "-O3 -acc -ta=multicore -mcmodel=medium"
 #define CS7 "randdp"
