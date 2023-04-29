@@ -65,7 +65,6 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
 
   //double (*vk)[ldmx/2*2+1][5] = v[k];
   double (*vkm1)[ldmx/2*2+1][5] = v[k-1];
-  printf("%d\n", ISIZ1);
 
   //#pragma omp for schedule(static) nowait
   //#pragma acc parallel loop private(i, j, m)
@@ -84,7 +83,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
   //#pragma omp for schedule(static) nowait
   #pragma acc enter data copyin(tv[:ISIZ1][:5], tmat[:ISIZ1][:5][:5], d[:ISIZ1][:ISIZ1/2*2+1][:5][:5], v[:ISIZ1][:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5], diag)
   for (diag = jst; diag < jend; diag++) {
-    #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
+    //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     for (t = 0; t <= diag - jst; t++) {
       j = diag - t;
       i = jst + t;
