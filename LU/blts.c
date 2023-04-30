@@ -85,9 +85,11 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
 
   //#pragma omp for schedule(static) nowait
   for (diag = jst; diag < jend; diag++) {
+    printf("\n")
     //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
     #pragma acc kernels
     for (t = 0; t <= diag - jst; t++) {
+      printf("%d %d   ", diag, j);
       j = diag - t;
       i = jst + t;
       for (m = 0; m < 5; m++) {
