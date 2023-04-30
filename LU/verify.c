@@ -50,8 +50,7 @@ void verify(double xcr[5], double xce[5], double xci,
   //---------------------------------------------------------------------
   // tolerance level
   //---------------------------------------------------------------------
-  //epsilon = 1.0e-08;
-  epsilon = 1.0e-05;
+  epsilon = 1.0e-08;
   *Class = 'U';
   *verified = true;
 
