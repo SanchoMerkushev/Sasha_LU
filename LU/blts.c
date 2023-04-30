@@ -58,7 +58,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
   // local variables
   //---------------------------------------------------------------------
   int i, j, m, diag, t;
-  double tmp, tmp1;  
+  double tmp[ISIZ1], tmp1[ISIZ1];  
   double tmat[ISIZ1][5][5], tv[ISIZ1][5];
 
   //sync_left( ldmx, ldmy, ldmz, v );
@@ -85,8 +85,8 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
 
   //#pragma omp for schedule(static) nowait
   for (diag = jst; diag < jend; diag++) {
-    //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
-    #pragma acc kernels private(t, diag, i, j, m, tmp, tmp1)
+    //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1[j])
+    #pragma acc kernels
     for (t = 0; t <= diag - jst; t++) {
       j = diag - t;
       i = jst + t;
@@ -117,68 +117,68 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
         tmat[j][m][4] = d[j][i][4][m];
       }
 
-      tmp1 = 1.0 / tmat[j][0][0];
-      tmp = tmp1 * tmat[j][1][0];
-      tmat[j][1][1] =  tmat[j][1][1] - tmp * tmat[j][0][1];
-      tmat[j][1][2] =  tmat[j][1][2] - tmp * tmat[j][0][2];
-      tmat[j][1][3] =  tmat[j][1][3] - tmp * tmat[j][0][3];
-      tmat[j][1][4] =  tmat[j][1][4] - tmp * tmat[j][0][4];
+      tmp1[j] = 1.0 / tmat[j][0][0];
+      tmp[j]= tmp1[j] * tmat[j][1][0];
+      tmat[j][1][1] =  tmat[j][1][1] - tmp[j]* tmat[j][0][1];
+      tmat[j][1][2] =  tmat[j][1][2] - tmp[j]* tmat[j][0][2];
+      tmat[j][1][3] =  tmat[j][1][3] - tmp[j]* tmat[j][0][3];
+      tmat[j][1][4] =  tmat[j][1][4] - tmp[j]* tmat[j][0][4];
       tv[j][1] = tv[j][1] - tv[j][0] * tmp;
 
-      tmp = tmp1 * tmat[j][2][0];
-      tmat[j][2][1] =  tmat[j][2][1] - tmp * tmat[j][0][1];
-      tmat[j][2][2] =  tmat[j][2][2] - tmp * tmat[j][0][2];
-      tmat[j][2][3] =  tmat[j][2][3] - tmp * tmat[j][0][3];
-      tmat[j][2][4] =  tmat[j][2][4] - tmp * tmat[j][0][4];
+      tmp[j]= tmp1[j] * tmat[j][2][0];
+      tmat[j][2][1] =  tmat[j][2][1] - tmp[j]* tmat[j][0][1];
+      tmat[j][2][2] =  tmat[j][2][2] - tmp[j]* tmat[j][0][2];
+      tmat[j][2][3] =  tmat[j][2][3] - tmp[j]* tmat[j][0][3];
+      tmat[j][2][4] =  tmat[j][2][4] - tmp[j]* tmat[j][0][4];
       tv[j][2] = tv[j][2] - tv[j][0] * tmp;
 
-      tmp = tmp1 * tmat[j][3][0];
-      tmat[j][3][1] =  tmat[j][3][1] - tmp * tmat[j][0][1];
-      tmat[j][3][2] =  tmat[j][3][2] - tmp * tmat[j][0][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][0][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][0][4];
+      tmp[j]= tmp1[j] * tmat[j][3][0];
+      tmat[j][3][1] =  tmat[j][3][1] - tmp[j]* tmat[j][0][1];
+      tmat[j][3][2] =  tmat[j][3][2] - tmp[j]* tmat[j][0][2];
+      tmat[j][3][3] =  tmat[j][3][3] - tmp[j]* tmat[j][0][3];
+      tmat[j][3][4] =  tmat[j][3][4] - tmp[j]* tmat[j][0][4];
       tv[j][3] = tv[j][3] - tv[j][0] * tmp;
 
-      tmp = tmp1 * tmat[j][4][0];
-      tmat[j][4][1] =  tmat[j][4][1] - tmp * tmat[j][0][1];
-      tmat[j][4][2] =  tmat[j][4][2] - tmp * tmat[j][0][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][0][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][0][4];
+      tmp[j]= tmp1[j] * tmat[j][4][0];
+      tmat[j][4][1] =  tmat[j][4][1] - tmp[j]* tmat[j][0][1];
+      tmat[j][4][2] =  tmat[j][4][2] - tmp[j]* tmat[j][0][2];
+      tmat[j][4][3] =  tmat[j][4][3] - tmp[j]* tmat[j][0][3];
+      tmat[j][4][4] =  tmat[j][4][4] - tmp[j]* tmat[j][0][4];
       tv[j][4] = tv[j][4] - tv[j][0] * tmp;
 
-      tmp1 = 1.0 / tmat[j][1][1];
-      tmp = tmp1 * tmat[j][2][1];
-      tmat[j][2][2] =  tmat[j][2][2] - tmp * tmat[j][1][2];
-      tmat[j][2][3] =  tmat[j][2][3] - tmp * tmat[j][1][3];
-      tmat[j][2][4] =  tmat[j][2][4] - tmp * tmat[j][1][4];
+      tmp1[j] = 1.0 / tmat[j][1][1];
+      tmp[j]= tmp1[j] * tmat[j][2][1];
+      tmat[j][2][2] =  tmat[j][2][2] - tmp[j]* tmat[j][1][2];
+      tmat[j][2][3] =  tmat[j][2][3] - tmp[j]* tmat[j][1][3];
+      tmat[j][2][4] =  tmat[j][2][4] - tmp[j]* tmat[j][1][4];
       tv[j][2] = tv[j][2] - tv[j][1] * tmp;
 
-      tmp = tmp1 * tmat[j][3][1];
-      tmat[j][3][2] =  tmat[j][3][2] - tmp * tmat[j][1][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][1][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][1][4];
+      tmp[j]= tmp1[j] * tmat[j][3][1];
+      tmat[j][3][2] =  tmat[j][3][2] - tmp[j]* tmat[j][1][2];
+      tmat[j][3][3] =  tmat[j][3][3] - tmp[j]* tmat[j][1][3];
+      tmat[j][3][4] =  tmat[j][3][4] - tmp[j]* tmat[j][1][4];
       tv[j][3] = tv[j][3] - tv[j][1] * tmp;
 
-      tmp = tmp1 * tmat[j][4][1];
-      tmat[j][4][2] =  tmat[j][4][2] - tmp * tmat[j][1][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][1][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][1][4];
+      tmp[j]= tmp1[j] * tmat[j][4][1];
+      tmat[j][4][2] =  tmat[j][4][2] - tmp[j]* tmat[j][1][2];
+      tmat[j][4][3] =  tmat[j][4][3] - tmp[j]* tmat[j][1][3];
+      tmat[j][4][4] =  tmat[j][4][4] - tmp[j]* tmat[j][1][4];
       tv[j][4] = tv[j][4] - tv[j][1] * tmp;
 
-      tmp1 = 1.0 / tmat[j][2][2];
-      tmp = tmp1 * tmat[j][3][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][2][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][2][4];
+      tmp1[j] = 1.0 / tmat[j][2][2];
+      tmp[j]= tmp1[j] * tmat[j][3][2];
+      tmat[j][3][3] =  tmat[j][3][3] - tmp[j]* tmat[j][2][3];
+      tmat[j][3][4] =  tmat[j][3][4] - tmp[j]* tmat[j][2][4];
       tv[j][3] = tv[j][3] - tv[j][2] * tmp;
 
-      tmp = tmp1 * tmat[j][4][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][2][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][2][4];
+      tmp[j]= tmp1[j] * tmat[j][4][2];
+      tmat[j][4][3] =  tmat[j][4][3] - tmp[j]* tmat[j][2][3];
+      tmat[j][4][4] =  tmat[j][4][4] - tmp[j]* tmat[j][2][4];
       tv[j][4] = tv[j][4] - tv[j][2] * tmp;
 
-      tmp1 = 1.0 / tmat[j][3][3];
-      tmp = tmp1 * tmat[j][4][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][3][4];
+      tmp1[j] = 1.0 / tmat[j][3][3];
+      tmp[j]= tmp1[j] * tmat[j][4][3];
+      tmat[j][4][4] =  tmat[j][4][4] - tmp[j]* tmat[j][3][4];
       tv[j][4] = tv[j][4] - tv[j][3] * tmp;
 
       //---------------------------------------------------------------------
@@ -210,7 +210,8 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
     }
   }
   for (diag = jst + 1; diag < jend; diag++) {
-    //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
+    //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1[j])
+    #pragma acc kernels
     for (t = 0; t <= (jend - jst) - diag; t++) {
       j = jend - 1 - t;
       i = diag + t;
@@ -241,68 +242,68 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
         tmat[j][m][4] = d[j][i][4][m];
       }
 
-      tmp1 = 1.0 / tmat[j][0][0];
-      tmp = tmp1 * tmat[j][1][0];
-      tmat[j][1][1] =  tmat[j][1][1] - tmp * tmat[j][0][1];
-      tmat[j][1][2] =  tmat[j][1][2] - tmp * tmat[j][0][2];
-      tmat[j][1][3] =  tmat[j][1][3] - tmp * tmat[j][0][3];
-      tmat[j][1][4] =  tmat[j][1][4] - tmp * tmat[j][0][4];
+      tmp1[j] = 1.0 / tmat[j][0][0];
+      tmp[j]= tmp1[j] * tmat[j][1][0];
+      tmat[j][1][1] =  tmat[j][1][1] - tmp[j]* tmat[j][0][1];
+      tmat[j][1][2] =  tmat[j][1][2] - tmp[j]* tmat[j][0][2];
+      tmat[j][1][3] =  tmat[j][1][3] - tmp[j]* tmat[j][0][3];
+      tmat[j][1][4] =  tmat[j][1][4] - tmp[j]* tmat[j][0][4];
       tv[j][1] = tv[j][1] - tv[j][0] * tmp;
 
-      tmp = tmp1 * tmat[j][2][0];
-      tmat[j][2][1] =  tmat[j][2][1] - tmp * tmat[j][0][1];
-      tmat[j][2][2] =  tmat[j][2][2] - tmp * tmat[j][0][2];
-      tmat[j][2][3] =  tmat[j][2][3] - tmp * tmat[j][0][3];
-      tmat[j][2][4] =  tmat[j][2][4] - tmp * tmat[j][0][4];
+      tmp[j]= tmp1[j] * tmat[j][2][0];
+      tmat[j][2][1] =  tmat[j][2][1] - tmp[j]* tmat[j][0][1];
+      tmat[j][2][2] =  tmat[j][2][2] - tmp[j]* tmat[j][0][2];
+      tmat[j][2][3] =  tmat[j][2][3] - tmp[j]* tmat[j][0][3];
+      tmat[j][2][4] =  tmat[j][2][4] - tmp[j]* tmat[j][0][4];
       tv[j][2] = tv[j][2] - tv[j][0] * tmp;
 
-      tmp = tmp1 * tmat[j][3][0];
-      tmat[j][3][1] =  tmat[j][3][1] - tmp * tmat[j][0][1];
-      tmat[j][3][2] =  tmat[j][3][2] - tmp * tmat[j][0][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][0][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][0][4];
+      tmp[j]= tmp1[j] * tmat[j][3][0];
+      tmat[j][3][1] =  tmat[j][3][1] - tmp[j]* tmat[j][0][1];
+      tmat[j][3][2] =  tmat[j][3][2] - tmp[j]* tmat[j][0][2];
+      tmat[j][3][3] =  tmat[j][3][3] - tmp[j]* tmat[j][0][3];
+      tmat[j][3][4] =  tmat[j][3][4] - tmp[j]* tmat[j][0][4];
       tv[j][3] = tv[j][3] - tv[j][0] * tmp;
 
-      tmp = tmp1 * tmat[j][4][0];
-      tmat[j][4][1] =  tmat[j][4][1] - tmp * tmat[j][0][1];
-      tmat[j][4][2] =  tmat[j][4][2] - tmp * tmat[j][0][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][0][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][0][4];
+      tmp[j]= tmp1[j] * tmat[j][4][0];
+      tmat[j][4][1] =  tmat[j][4][1] - tmp[j]* tmat[j][0][1];
+      tmat[j][4][2] =  tmat[j][4][2] - tmp[j]* tmat[j][0][2];
+      tmat[j][4][3] =  tmat[j][4][3] - tmp[j]* tmat[j][0][3];
+      tmat[j][4][4] =  tmat[j][4][4] - tmp[j]* tmat[j][0][4];
       tv[j][4] = tv[j][4] - tv[j][0] * tmp;
 
-      tmp1 = 1.0 / tmat[j][1][1];
-      tmp = tmp1 * tmat[j][2][1];
-      tmat[j][2][2] =  tmat[j][2][2] - tmp * tmat[j][1][2];
-      tmat[j][2][3] =  tmat[j][2][3] - tmp * tmat[j][1][3];
-      tmat[j][2][4] =  tmat[j][2][4] - tmp * tmat[j][1][4];
+      tmp1[j] = 1.0 / tmat[j][1][1];
+      tmp[j]= tmp1[j] * tmat[j][2][1];
+      tmat[j][2][2] =  tmat[j][2][2] - tmp[j]* tmat[j][1][2];
+      tmat[j][2][3] =  tmat[j][2][3] - tmp[j]* tmat[j][1][3];
+      tmat[j][2][4] =  tmat[j][2][4] - tmp[j]* tmat[j][1][4];
       tv[j][2] = tv[j][2] - tv[j][1] * tmp;
 
-      tmp = tmp1 * tmat[j][3][1];
-      tmat[j][3][2] =  tmat[j][3][2] - tmp * tmat[j][1][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][1][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][1][4];
+      tmp[j]= tmp1[j] * tmat[j][3][1];
+      tmat[j][3][2] =  tmat[j][3][2] - tmp[j]* tmat[j][1][2];
+      tmat[j][3][3] =  tmat[j][3][3] - tmp[j]* tmat[j][1][3];
+      tmat[j][3][4] =  tmat[j][3][4] - tmp[j]* tmat[j][1][4];
       tv[j][3] = tv[j][3] - tv[j][1] * tmp;
 
-      tmp = tmp1 * tmat[j][4][1];
-      tmat[j][4][2] =  tmat[j][4][2] - tmp * tmat[j][1][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][1][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][1][4];
+      tmp[j]= tmp1[j] * tmat[j][4][1];
+      tmat[j][4][2] =  tmat[j][4][2] - tmp[j]* tmat[j][1][2];
+      tmat[j][4][3] =  tmat[j][4][3] - tmp[j]* tmat[j][1][3];
+      tmat[j][4][4] =  tmat[j][4][4] - tmp[j]* tmat[j][1][4];
       tv[j][4] = tv[j][4] - tv[j][1] * tmp;
 
-      tmp1 = 1.0 / tmat[j][2][2];
-      tmp = tmp1 * tmat[j][3][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][2][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][2][4];
+      tmp1[j] = 1.0 / tmat[j][2][2];
+      tmp[j]= tmp1[j] * tmat[j][3][2];
+      tmat[j][3][3] =  tmat[j][3][3] - tmp[j]* tmat[j][2][3];
+      tmat[j][3][4] =  tmat[j][3][4] - tmp[j]* tmat[j][2][4];
       tv[j][3] = tv[j][3] - tv[j][2] * tmp;
 
-      tmp = tmp1 * tmat[j][4][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][2][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][2][4];
+      tmp[j]= tmp1[j] * tmat[j][4][2];
+      tmat[j][4][3] =  tmat[j][4][3] - tmp[j]* tmat[j][2][3];
+      tmat[j][4][4] =  tmat[j][4][4] - tmp[j]* tmat[j][2][4];
       tv[j][4] = tv[j][4] - tv[j][2] * tmp;
 
-      tmp1 = 1.0 / tmat[j][3][3];
-      tmp = tmp1 * tmat[j][4][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][3][4];
+      tmp1[j] = 1.0 / tmat[j][3][3];
+      tmp[j]= tmp1[j] * tmat[j][4][3];
+      tmat[j][4][4] =  tmat[j][4][4] - tmp[j]* tmat[j][3][4];
       tv[j][4] = tv[j][4] - tv[j][3] * tmp;
 
       //---------------------------------------------------------------------
