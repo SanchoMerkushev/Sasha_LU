@@ -68,7 +68,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
 
 
   //#pragma omp for schedule(static) nowait
-  #pragma acc parallel loop private(i, j, m)
+  //#pragma acc parallel loop private(i, j, m)
   for (j = jst; j < jend; j++) {
     for (i = ist; i < iend; i++) {
       for (m = 0; m < 5; m++) {
@@ -85,7 +85,8 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
 
   //#pragma omp for schedule(static) nowait
   for (diag = jst; diag < jend; diag++) {
-    #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
+    //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
+    #pragma acc kernels
     for (t = 0; t <= diag - jst; t++) {
       j = diag - t;
       i = jst + t;
@@ -209,7 +210,8 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
     }
   }
   for (diag = jst + 1; diag < jend; diag++) {
-    #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
+    //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
+     #pragma acc kernels
     for (t = 0; t <= (jend - jst) - diag; t++) {
       j = jend - 1 - t;
       i = diag + t;
