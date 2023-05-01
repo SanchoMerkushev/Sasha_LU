@@ -85,7 +85,7 @@ void blts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
 
   //#pragma omp for schedule(static) nowait
   for (diag = jst; diag < jend; diag++) {
-    #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1) copy(vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], \
+    //#pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1) copy(vk[:ISIZ1/2*2+1][:ISIZ1/2*2+1][:5], ldx[:ISIZ1][:ISIZ1/2*2+1][:5][:5], ldy[:ISIZ1][:ISIZ1/2*2+1][:5][:5], \
     d[:ISIZ1][:ISIZ1/2*2+1][:5][:5])
     for (t = 0; t <= diag - jst; t++) {
       j = diag - t;
