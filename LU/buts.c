@@ -1,37 +1,3 @@
-//-------------------------------------------------------------------------//
-//                                                                         //
-//  This benchmark is an OpenMP C version of the NPB LU code. This OpenMP  //
-//  C version is developed by the Center for Manycore Programming at Seoul //
-//  National University and derived from the OpenMP Fortran versions in    //
-//  "NPB3.3-OMP" developed by NAS.                                         //
-//                                                                         //
-//  Permission to use, copy, distribute and modify this software for any   //
-//  purpose with or without fee is hereby granted. This software is        //
-//  provided "as is" without express or implied warranty.                  //
-//                                                                         //
-//  Information on NPB 3.3, including the technical report, the original   //
-//  specifications, source code, results and information on how to submit  //
-//  new results, is available at:                                          //
-//                                                                         //
-//           http://www.nas.nasa.gov/Software/NPB/                         //
-//                                                                         //
-//  Send comments or suggestions for this OpenMP C version to              //
-//  cmp@aces.snu.ac.kr                                                     //
-//                                                                         //
-//          Center for Manycore Programming                                //
-//          School of Computer Science and Engineering                     //
-//          Seoul National University                                      //
-//          Seoul 151-744, Korea                                           //
-//                                                                         //
-//          E-mail:  cmp@aces.snu.ac.kr                                    //
-//                                                                         //
-//-------------------------------------------------------------------------//
-
-//-------------------------------------------------------------------------//
-// Authors: Sangmin Seo, Jungwon Kim, Jun Lee, Jeongho Nah, Gangwon Jo,    //
-//          and Jaejin Lee                                                 //
-//-------------------------------------------------------------------------//
-
 #include "applu.incl"  
 
 //---------------------------------------------------------------------
@@ -65,6 +31,7 @@ void buts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
 
    //#pragma acc parallel loop private(i, j, m)
   //#pragma omp for schedule(static) nowait
+  #pragma acc parallel loop private(i, j, m)
   for (j = jend - 1; j >= jst; j--) {
     for (i = iend - 1; i >= ist; i--) {
       for (m = 0; m < 5; m++) {
@@ -81,7 +48,7 @@ void buts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
   //#pragma omp for schedule(static) nowait
   //#pragma acc parallel loop private(i, j, m, tmp, tmp1)
   for (diag = jend - 1; diag > jst; diag--) {
-    //#pragma acc parallel loop private(i, j, m, tmp, tmp1, diag, t)
+    #pragma acc parallel loop private(i, j, m, tmp, tmp1, diag, t)
     for (t = 0; t <= (jend - jst) - diag; t++) {
        j = jend - 1 - t;
        i = diag + t;
@@ -208,7 +175,7 @@ void buts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
     }
   }
   for (diag = jend  - 1; diag >= jst; diag--) {
-    //#pragma acc parallel loop private(i, j, m, tmp, tmp1, diag, t)
+    #pragma acc parallel loop private(i, j, m, tmp, tmp1, diag, t)
     for (t = 0; t <= diag - jst; t++) {
       j = diag - t;
       i = jst + t;
