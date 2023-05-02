@@ -22,6 +22,6 @@
 #define CS2 "$(CC)"
 #define CS3 "-lm"
 #define CS4 "-I../common"
-#define CS5 "-g -Wall -O3 -acc -ta=nvidia -Minfo=all -mc..."
-#define CS6 "-O3 -acc -ta=nvidia -Minfo=all  -mcmodel=me..."
+#define CS5 "-g -Wall -O3 -acc -ta=nvidia:managed -Minfo..."
+#define CS6 "-O3 -acc -ta=nvidia:managed -Minfo=all  -mc..."
 #define CS7 "randdp"
