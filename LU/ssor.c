@@ -71,6 +71,7 @@ void ssor(int niter)
   //---------------------------------------------------------------------
   // the timestep loop
   //---------------------------------------------------------------------
+---//START MAIN PARALLEL
   for (istep = 1; istep <= niter; istep++) {
     if ((istep % 20) == 0 || istep == itmax || istep == 1) {
       if (niter > 1) printf(" Time step %4d\n", istep);
@@ -92,7 +93,9 @@ void ssor(int niter)
         }
       }
     }
+    
     for (k = 1; k < nz -1; k++) { // start k_first
+    //#pragma acc enter data copyin(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], 		b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
       // start jacld(k);
 	  double r43;
 	  double c1345;
@@ -103,7 +106,7 @@ void ssor(int niter)
 	  c1345 = C1 * C3 * C4 * C5;
 	  c34 = C3 * C4;
 	  //#pragma omp for schedule(static) nowait
-	  //#pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3)
+	  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3)
 	  for (j = jst; j < jend; j++) {
 	    for (i = ist; i < iend; i++) {
 	      //---------------------------------------------------------------------
@@ -387,6 +390,7 @@ void ssor(int niter)
 	      }
 	    }
       // end jacld(k);
+          //#pragma acc enter data copyout(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
       // start blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
 	  int diag;
 	  double tmp_blts, tmp1_blts;  
@@ -1270,6 +1274,7 @@ void ssor(int niter)
       }
     } // end k_third
     } //end parallel
+---// END MAIN PARALLEL
 
     //---------------------------------------------------------------------
     // compute the max-norms of newton iteration corrections
