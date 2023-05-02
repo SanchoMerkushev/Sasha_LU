@@ -148,7 +148,7 @@ void ssor(int niter)
 		  //#pragma omp for schedule(static) nowait
 		  //printf("%d\n", k);
 		  //printf("jackd start\n");
-		  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3)
+		  //#pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3)
 		  for (j = jst; j < jend; j++) {
 		    for (i = ist; i < iend; i++) {
 		      //---------------------------------------------------------------------
@@ -456,7 +456,7 @@ void ssor(int niter)
 
 
 			  //#pragma omp for schedule(static) nowait
-			  #pragma acc parallel loop private(i, j, m)
+			  //#pragma acc parallel loop private(i, j, m)
 			  for (j = jst; j < jend; j++) {
 			    for (i = ist; i < iend; i++) {
 			      for (m = 0; m < 5; m++) {
@@ -755,7 +755,7 @@ void ssor(int niter)
 			  c34 = C3 * C4;
 
 			  //#pragma omp for schedule(static) nowait
-			  #pragma acc parallel loop private(j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu)
+			  //#pragma acc parallel loop private(j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu)
 			  for (j = jend - 1; j >= jst; j--) {
 			    for (i = iend - 1; i >= ist; i--) {
 			      //---------------------------------------------------------------------t 
@@ -1078,7 +1078,7 @@ void ssor(int niter)
 
 				   //#pragma acc parallel loop private(i, j, m)
 				  //#pragma omp for schedule(static) nowait
-				  #pragma acc parallel loop private(i, j, m)
+				  //#pragma acc parallel loop private(i, j, m)
 				  for (j = jend - 1; j >= jst; j--) {
 				    for (i = iend - 1; i >= ist; i--) {
 				      for (m = 0; m < 5; m++) {
