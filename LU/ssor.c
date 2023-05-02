@@ -389,7 +389,7 @@ void ssor(int niter)
 	      }
 	    }
       // end jacld(k);
-      #pragma acc barier
+      #pragma acc barrier
       #pragma acc exit data copyout(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
       // start blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
 	  printf("AFTER %f\n", a[4][3][4][3]);
