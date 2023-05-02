@@ -150,7 +150,7 @@ void ssor(int niter)
 		  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3)
 		  for (j = jst; j < jend; j++) {
 		    for (i = ist; i < iend; i++) {
-		      printf("%d----%d----%d\n", k. i. j);
+		      printf("%d----%d----%d\n", k, i, j);
 		      //---------------------------------------------------------------------
 		      // form the block daigonal
 		      //---------------------------------------------------------------------
