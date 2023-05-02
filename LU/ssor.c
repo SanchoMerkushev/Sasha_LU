@@ -146,8 +146,8 @@ void ssor(int niter)
 		  c1345 = C1 * C3 * C4 * C5;
 		  c34 = C3 * C4;
 		  //#pragma omp for schedule(static) nowait
-		  printf("%d\n", k);
-		  printf("jackd start\n");
+		  //printf("%d\n", k);
+		  //printf("jackd start\n");
 		  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3)
 		  for (j = jst; j < jend; j++) {
 		    for (i = ist; i < iend; i++) {
@@ -432,7 +432,7 @@ void ssor(int niter)
 		    }
 		  }
 		}
-	printf("jackd end\n");
+	//printf("jackd end\n");
       // end jacld(k);
       //#pragma omp master
       {
@@ -445,7 +445,7 @@ void ssor(int niter)
       }
       // start blts
 			      {
-			      printf("blts start\n");
+			      //printf("blts start\n");
 			      int diag;
 			  double tmp_blts, tmp1_blts;
 
@@ -599,7 +599,7 @@ void ssor(int niter)
 			  }
 			  //#pragma acc data create(tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5])
 			  for (diag = jst + 1; diag < jend; diag++) {
-			    #pragma acc parallel loop private(t, i, j, m, tmp_blts, tmp1_blts)
+			    //#pragma acc parallel loop private(t, i, j, m, tmp_blts, tmp1_blts)
 			    for (t = 0; t <= (jend - jst) - diag; t++) {
 			      j = jend - 1 - t;
 			      i = diag + t;
@@ -723,7 +723,7 @@ void ssor(int niter)
 			    }
 			  }
 		}
-		printf("blts end\n");
+		//printf("blts end\n");
       //end blts( ISIZ1, ISIZ2, ISIZ3,
             //nx, ny, nz, k,
             //omega,
