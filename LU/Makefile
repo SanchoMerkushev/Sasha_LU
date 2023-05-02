@@ -10,7 +10,7 @@ include ../sys/make.common
 OBJS = lu.o read_input.o \
        domain.o setcoeff.o setbv.o exact.o setiv.o \
        erhs.o ssor$(VEC).o rhs$(VEC).o l2norm.o \
-       jacld.o blts$(VEC).o jacu.o buts$(VEC).o error.o \
+       error.o \
        pintgr.o verify.o ${COMMON}/print_results.o \
        ${COMMON}/c_timers.o ${COMMON}/wtime.o
 
@@ -41,13 +41,9 @@ exec: $(OBJS)
 	${CCOMPILE} $<
 
 lu.o:		lu.c applu.incl npbparams.h
-blts$(VEC).o:	blts$(VEC).c
-buts$(VEC).o:	buts$(VEC).c
 erhs.o:		erhs.c applu.incl npbparams.h
 error.o:	error.c applu.incl npbparams.h
 exact.o:	exact.c applu.incl npbparams.h
-jacld.o:	jacld.c applu.incl npbparams.h
-jacu.o:		jacu.c applu.incl npbparams.h
 l2norm.o:	l2norm.c
 pintgr.o:	pintgr.c applu.incl npbparams.h
 read_input.o:	read_input.c applu.incl npbparams.h

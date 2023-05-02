@@ -18,10 +18,10 @@
 #define CONVERTDOUBLE  false
 #define COMPILETIME "02 May 2023"
 #define NPBVERSION "3.3.1"
-#define CS1 "nvc"
+#define CS1 "pgcc"
 #define CS2 "$(CC)"
 #define CS3 "-lm"
 #define CS4 "-I../common"
-#define CS5 "-g -Wall -O3 -acc -ta=multicore -Minfo=all ..."
-#define CS6 "-O3 -acc -ta=multicore -Minfo=all  -mcmodel..."
+#define CS5 "-g -Wall -O3 -acc -ta=multicore -mcmodel=me..."
+#define CS6 "-O3 -acc -ta=multicore -mcmodel=medium"
 #define CS7 "randdp"

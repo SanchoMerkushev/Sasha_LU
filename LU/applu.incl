@@ -144,7 +144,6 @@ void exact(int i, int j, int k, double u000ijk[]);
 void setiv();
 void erhs();
 void ssor(int niter);
-void ssor1(int niter);
 void rhs();
 void l2norm (int ldx, int ldy, int ldz, int nx0, int ny0, int nz0,
      int ist, int iend, int jst, int jend,
