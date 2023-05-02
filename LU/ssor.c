@@ -95,7 +95,8 @@ void ssor(int niter)
     } // end parallel
     for (k = 1; k < nz -1; k++) { // start k_first
       // start jacld(k);
-          #pragma acc enter data copyin(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
+          #pragma acc enter data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
+          {
 	  double r43;
 	  double c1345;
 	  double c34;
@@ -389,8 +390,8 @@ void ssor(int niter)
 	      }
 	    }
       // end jacld(k);
-      #pragma acc barrier
-      #pragma acc exit data copyout(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
+      }
+      //#pragma acc exit data copyout(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
       // start blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
 	  printf("AFTER %f\n", a[4][3][4][3]);
 	  int diag;
