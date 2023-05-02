@@ -147,8 +147,8 @@ void ssor(int niter)
 		  c34 = C3 * C4;
 		  //#pragma omp for schedule(static) nowait
 		  printf("%d\n", k);
-		  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3)
 		  printf("jackd start\n");
+		  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3)
 		  for (j = jst; j < jend; j++) {
 		    for (i = ist; i < iend; i++) {
 		      //---------------------------------------------------------------------
