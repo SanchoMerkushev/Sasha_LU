@@ -137,7 +137,7 @@ void ssor(int niter)
       if (timeron) timer_start(t_jacld);
       // start jacld(k);
 		      {
-		  d ouble r43;
+		  double r43;
 		  double c1345;
 		  double c34;
 		  double tmp1, tmp2_jacld, tmp3;
