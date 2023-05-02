@@ -148,9 +148,9 @@ void ssor(int niter)
 		  //#pragma omp for schedule(static) nowait
 		  printf("%d\n", k);
 		  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3)
+		  printf("jackd start\n");
 		  for (j = jst; j < jend; j++) {
 		    for (i = ist; i < iend; i++) {
-		      printf("%d----%d----%d\n", k, i, j);
 		      //---------------------------------------------------------------------
 		      // form the block daigonal
 		      //---------------------------------------------------------------------
@@ -432,6 +432,7 @@ void ssor(int niter)
 		    }
 		  }
 		}
+	printf("jackd end\n");
       // end jacld(k);
       //#pragma omp master
       {
@@ -444,6 +445,7 @@ void ssor(int niter)
       }
       // start blts
 			      {
+			      printf("blts start\n");
 			      int diag;
 			  double tmp_blts, tmp1_blts;
 
@@ -721,6 +723,7 @@ void ssor(int niter)
 			    }
 			  }
 		}
+		printf("blts end\n");
       //end blts( ISIZ1, ISIZ2, ISIZ3,
             //nx, ny, nz, k,
             //omega,
