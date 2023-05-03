@@ -123,6 +123,7 @@ void ssor(int niter)
       //---------------------------------------------------------------------
       //#pragma omp master
       // start jacld(k);
+          printf("%d jacld\n", k);
 	  double r43;
 	  double c1345;
 	  double c34;
@@ -418,6 +419,7 @@ void ssor(int niter)
       // end jacld(k);
 
       // start blts
+          printf("%d blts\n", k);
 	  int diag;
 	  double tmp_blts, tmp1_blts;
 
@@ -711,6 +713,7 @@ void ssor(int niter)
       // form the strictly upper triangular part of the jacobian matrix
       //---------------------------------------------------------------------
       // start jacu
+          printf("%d jacu\n", k);
 	  double r43;
 	  double c1345;
 	  double c34;
@@ -1027,6 +1030,7 @@ void ssor(int niter)
       // end jacu(k);
 
       //start buts
+          printf("%d buts\n", k);
 	  int diag;
 	  double tmp_buts, tmp1_buts;
 
@@ -1372,6 +1376,7 @@ void ssor(int niter)
     // compute the steady-state residuals
     //---------------------------------------------------------------------
         // begin rhs()
+          printf("%d rhs\n", k);
 	  double q;
 	  double tmp_rhs, u_rhs[ISIZ3][6], r_rhs[ISIZ3][5];
 	  double u21, u31, u41;
@@ -1797,6 +1802,7 @@ void ssor(int niter)
     //---------------------------------------------------------------------
     if ( ((istep % inorm ) == 0 ) || ( istep == itmax ) ) {
         // start l2norm second
+         printf("%d l2norm second\n", k);
         //l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0, ist, iend, jst, jend, rsd, rsdnm );      
 	//---------------------------------------------------------------------
 	  // local variables
