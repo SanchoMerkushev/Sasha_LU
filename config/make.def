@@ -106,7 +106,7 @@ C_INC = -I../common
 # _LARGEFILE64_SOURCE - are standard compiler flags which allow to work with 
 # files larger than 2GB.
 #---------------------------------------------------------------------------
-CLINKFLAGS = -O3 -acc -ta=nvidia -Minfo=all  -mcmodel=medium
+CFLAGS = -O3 -acc -ta=nvidia -Minfo=all  -mcmodel=medium
 
 #---------------------------------------------------------------------------
 # Global *link time* flags. Flags for increasing maximum executable 
