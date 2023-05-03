@@ -1310,7 +1310,6 @@ void ssor(int niter)
     // update the variables
     //---------------------------------------------------------------------
     //#pragma omp master
-    if (timeron) timer_start(t_add);
     tmp2 = tmp;
     //#pragma omp for nowait
     for (k = 1; k < nz-1; k++) {
@@ -1323,7 +1322,6 @@ void ssor(int niter)
       }
     }
     } //end parallel
-    if (timeron) timer_stop(t_add);
 
     //---------------------------------------------------------------------
     // compute the max-norms of newton iteration corrections
@@ -1384,7 +1382,6 @@ void ssor(int niter)
 	  double u21jm1, u31jm1, u41jm1, u51jm1;
 	  double u21km1, u31km1, u41km1, u51km1;
 
-	  if (timeron) timer_start(t_rhs);
 	  //#pragma omp parallel default(shared) private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
