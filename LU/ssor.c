@@ -1,8 +1,14 @@
 #include <stdio.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include "applu.incl"
 #include "timers.h"
+#include <math.h>
 
-
+//---------------------------------------------------------------------
+// Thread synchronization for pipeline operation
+//---------------------------------------------------------------------
 
 //---------------------------------------------------------------------
 // to perform pseudo-time stepping SSOR iterations
@@ -28,7 +34,7 @@ void ssor(int niter)
   // formed, if applicable on given architecture, before timestepping).
   //---------------------------------------------------------------------
   //#pragma omp parallel default(shared) private(m,n,i,j)
-  {
+  { // PARALLEL BEGIN
   //#pragma omp for nowait
   for (j = jst; j < jend; j++) {
     for (i = ist; i < iend; i++) {
@@ -56,6 +62,9 @@ void ssor(int niter)
     }
   }
   } //end parallel
+  for (i = 1; i <= t_last; i++) {
+    timer_clear(i);
+  }
 
   //---------------------------------------------------------------------
   // compute the steady-state residuals
@@ -68,28 +77,28 @@ void ssor(int niter)
   l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0,
           ist, iend, jst, jend, rsd, rsdnm );
 
+  for (i = 1; i <= t_last; i++) {
+    timer_clear(i);
+  }
+  timer_start(1);
+
   //---------------------------------------------------------------------
   // the timestep loop
   //---------------------------------------------------------------------
-//-----START ITERATIONS PARALLEL
-double tmat_blts[ISIZ1][5][5], tv_blts[ISIZ1][5];
-double tmat_buts[ISIZ1][5][5];
-//#pragma acc enter data copyin(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], tmat_buts[:ISIZ1][:5][:5])
-{ //BEGIN DATA
-//#pragma acc parallel
-{ // BEGIN PARALLEL
   for (istep = 1; istep <= niter; istep++) {
     if ((istep % 20) == 0 || istep == itmax || istep == 1) {
       if (niter > 1) printf(" Time step %4d\n", istep);
     }
+
+    //---------------------------------------------------------------------
+    // perform SSOR iteration
+    //---------------------------------------------------------------------
     //#pragma omp parallel default(shared) private(i,j,k,m,tmp2) \
                 shared(ist,iend,jst,jend,nx,ny,nz,nx0,ny0,omega)
-    
-    { // start parallel
+    {
     //#pragma omp master
     tmp2 = dt;
     //#pragma omp for nowait
-    //#pragma acc parallel loop private(k, j, i, m)
     for (k = 1; k < nz - 1; k++) {
       for (j = jst; j < jend; j++) {
         for (i = ist; i < iend; i++) {
@@ -98,12 +107,16 @@ double tmat_buts[ISIZ1][5][5];
           }
         }
       }
-    } // end parallel
-    //#pragma acc data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], \
-    a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], \
-    tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
-    // DATA
-    for (k = 1; k < nz -1; k++) { // start k_first
+    }
+    //#pragma omp master
+
+    //#pragma omp barrier
+    //#pragma acc parallel loop private(k)
+    for (k = 1; k < nz -1; k++) {
+      //---------------------------------------------------------------------
+      // form the lower triangular part of the jacobian matrix
+      //---------------------------------------------------------------------
+      //#pragma omp master
       // start jacld(k);
 	  double r43;
 	  double c1345;
@@ -114,7 +127,7 @@ double tmat_buts[ISIZ1][5][5];
 	  c1345 = C1 * C3 * C4 * C5;
 	  c34 = C3 * C4;
 	  //#pragma omp for schedule(static) nowait
-	  //#pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3, r43, c1345, c34)
+	  //#pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3)
 	  for (j = jst; j < jend; j++) {
 	    for (i = ist; i < iend; i++) {
 	      //---------------------------------------------------------------------
@@ -395,17 +408,21 @@ double tmat_buts[ISIZ1][5][5];
 		* ( C1 * ( u[k][j][i-1][1] * tmp1 ) )
 		- dt * tx1 * c1345 * tmp1
 		- dt * tx1 * dx5;
-	      }
 	    }
+	  }
       // end jacld(k);
-      
-      //#pragma acc exit data copyout(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
-      // start blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
-	  //printf("AFTER %f\n", a[4][3][4][3]);
+
+      // start blts
 	  int diag;
-	  double tmp_blts, tmp1_blts;
+	  double tmp_blts, tmp1_blts;  
+	  double tmat_blts[ISIZ1][5][5], tv_blts[ISIZ1][5];
+
+	  //sync_left( ldmx, ldmy, ldmz, v );
+
 	  //double (*vk)[ldmx/2*2+1][5] = rsd[k];
-	  //double (*vkm1)[ldmx/2*2+1][5] = rsd[k-1];
+	  //double (*rsd[k]m1)[ldmx/2*2+1][5] = rsd[k-1];
+
+
 	  //#pragma omp for schedule(static) nowait
 	  //#pragma acc parallel loop private(i, j, m)
 	  for (j = jst; j < jend; j++) {
@@ -425,7 +442,7 @@ double tmat_buts[ISIZ1][5][5];
 	  //#pragma omp for schedule(static) nowait
 	  //#pragma acc data create(tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5])
 	  for (diag = jst; diag < jend; diag++) {
-	    //#pragma acc parallel loop private(t, i, j, m, tmp_blts, tmp1_blts)
+	    //#pragma acc parallel loop private(t, diag, i, j, m, tmp_blts, tmp1_blts)
 	    for (t = 0; t <= diag - jst; t++) {
 	      j = diag - t;
 	      i = jst + t;
@@ -548,8 +565,9 @@ double tmat_buts[ISIZ1][5][5];
 	      rsd[k][j][i][0] = tv_blts[j][0] / tmat_blts[j][0][0];
 	    }
 	  }
+	  //#pragma acc data create(tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5])
 	  for (diag = jst + 1; diag < jend; diag++) {
-	    //#pragma acc parallel loop private(t, i, j, m, tmp_blts, tmp1_blts)
+	    //#pragma acc parallel loop private(t, diag, i, j, m, tmp_blts, tmp1_blts)
 	    for (t = 0; t <= (jend - jst) - diag; t++) {
 	      j = jend - 1 - t;
 	      i = diag + t;
@@ -672,12 +690,23 @@ double tmat_buts[ISIZ1][5][5];
 	      rsd[k][j][i][0] = tv_blts[j][0] / tmat_blts[j][0][0];
 	    }
 	  }
-
-      // end blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
-    } // end k_first
-    // DATA
-    for (k = nz - 2; k > 0; k--) { // start k_second
-      // start jacu(k);
+      //end blts( ISIZ1, ISIZ2, ISIZ3,
+            //nx, ny, nz, k,
+            //omega,
+            //rsd,
+            //a, b, c, d,
+            //ist, iend, jst, jend,
+            //nx0, ny0 );
+    } // END K FIRST
+    
+    
+    //#pragma omp barrier
+    //#pragma acc parallel loop private(k)
+    for (k = nz - 2; k > 0; k--) {
+      //---------------------------------------------------------------------
+      // form the strictly upper triangular part of the jacobian matrix
+      //---------------------------------------------------------------------
+      // start jacu
 	  double r43;
 	  double c1345;
 	  double c34;
@@ -989,12 +1018,15 @@ double tmat_buts[ISIZ1][5][5];
 		* ( C1 * ( u[k+1][j][i][3] * tmp1_jacu ) )
 		- dt * tz1 * c1345 * tmp1_jacu
 		- dt * tz1 * dz5;
-	      }
 	    }
+	  }
       // end jacu(k);
-      // start buts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, tv, du, au, bu, cu, ist, iend, jst, jend, nx0, ny0 );
+
+      //start buts
 	  int diag;
 	  double tmp_buts, tmp1_buts;
+	  double tmat_buts[ISIZ1][5][5];
+
 	  //#pragma acc parallel loop private(i, j, m)
 	  for (j = jend - 1; j >= jst; j--) {
 	    for (i = iend - 1; i >= ist; i--) {
@@ -1013,7 +1045,7 @@ double tmat_buts[ISIZ1][5][5];
 	  //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts)
 	  //#pragma acc data create(tmat_buts[:ISIZ1][:5][:5])
 	  for (diag = jend - 1; diag > jst; diag--) {
-	    //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts, t)
+	    //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts, diag, t)
 	    for (t = 0; t <= (jend - jst) - diag; t++) {
 	       j = jend - 1 - t;
 	       i = diag + t;
@@ -1141,7 +1173,7 @@ double tmat_buts[ISIZ1][5][5];
 	  }
 	  //#pragma acc data create(tmat_buts[:ISIZ1][:5][:5])
 	  for (diag = jend  - 1; diag >= jst; diag--) {
-	    //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts, t)
+	    //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts, diag, t)
 	    for (t = 0; t <= diag - jst; t++) {
 	      j = diag - t;
 	      i = jst + t;
@@ -1267,10 +1299,18 @@ double tmat_buts[ISIZ1][5][5];
 	      rsd[k][j][i][4] = rsd[k][j][i][4] - tv[j][i][4];
 	    }
 	  }
-      // end buts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, tv, du, au, bu, cu, ist, iend, jst, jend, nx0, ny0 );
-    } // end k_second
+      //end buts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega,rsd, tv, du, au, bu, cu, ist, iend, jst, jend, nx0, ny0 );
+    } // END K SECOND
+    
+    //#pragma omp barrier
+    //---------------------------------------------------------------------
+    // update the variables
+    //---------------------------------------------------------------------
+    //#pragma omp master
+    if (timeron) timer_start(t_add);
     tmp2 = tmp;
-    for (k = 1; k < nz-1; k++) { // start k_third
+    //#pragma omp for nowait
+    for (k = 1; k < nz-1; k++) {
       for (j = jst; j < jend; j++) {
         for (i = ist; i < iend; i++) {
           for (m = 0; m < 5; m++) {
@@ -1278,23 +1318,20 @@ double tmat_buts[ISIZ1][5][5];
           }
         }
       }
-    } // end k_third
+    }
     } //end parallel
-//------END MAIN PARALLEL
+    if (timeron) timer_stop(t_add);
 
     //---------------------------------------------------------------------
     // compute the max-norms of newton iteration corrections
     //---------------------------------------------------------------------
     if ( (istep % inorm) == 0 ) {
-      // start l2norm first
-            //l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0,
-              //ist, iend, jst, jend,
-              //rsd, delunm );
+    // start l2norm first
+          //l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0, ist, iend, jst, jend, rsd, delunm );
 	  //---------------------------------------------------------------------
 	  // local variables
 	  //---------------------------------------------------------------------
 	  double sum_local[5];
-	  int i, j, k, m;
 
 	  for (m = 0; m < 5; m++) {
 	    delunm[m] = 0.0;
@@ -1327,13 +1364,13 @@ double tmat_buts[ISIZ1][5][5];
 	  for (m = 0; m < 5; m++) {
 	    delunm[m] = sqrt (delunm[m] / ( (nx0-2)*(ny0-2)*(nz0-2) ) );
 	  }
-    // end l2norm second
+    // end l2norm first
     }
 
     //---------------------------------------------------------------------
     // compute the steady-state residuals
     //---------------------------------------------------------------------
-    // begin rhs()
+        // begin rhs()
 	  double q;
 	  double tmp_rhs, u_rhs[ISIZ3][6], r_rhs[ISIZ3][5];
 	  double u21, u31, u41;
@@ -1759,22 +1796,17 @@ double tmat_buts[ISIZ1][5][5];
     // compute the max-norms of newton iteration residuals
     //---------------------------------------------------------------------
     if ( ((istep % inorm ) == 0 ) || ( istep == itmax ) ) {
-    
-      // start l2norm second
-      //l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0,
-              //ist, iend, jst, jend, rsd, rsdnm );
-	  //---------------------------------------------------------------------
+        // start l2norm second
+        //l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0, ist, iend, jst, jend, rsd, rsdnm );      
+	//---------------------------------------------------------------------
 	  // local variables
 	  //---------------------------------------------------------------------
 	  double sum_local[5];
-	  int i, j, k, m;
-
 	  for (m = 0; m < 5; m++) {
 	    rsdnm[m] = 0.0;
 	  }
-
 	  //#pragma omp parallel default(shared) private(i,j,k,m,sum_local)
-	  {
+	  //{
 	  //#pragma acc parallel loop private(m, sum_local)
 	  for (m = 0; m < 5; m++) {
 	    sum_local[m] = 0.0;
@@ -1792,18 +1824,14 @@ double tmat_buts[ISIZ1][5][5];
 	  }
 	  for (m = 0; m < 5; m++) {
 	    //#pragma omp atomic
-	    //#pragma acc atomic
 	    rsdnm[m] += sum_local[m];
-	  }
-	  } //end parallel
-
+	   }
+	  //} //end parallel
 	  for (m = 0; m < 5; m++) {
-	    rsdnm[m] = sqrt (rsdnm[m] / ( (nx0-2)*(ny0-2)*(nz0-2) ) );
-	  }
+	    rsdnm[m] = sqrt ( rsdnm[m] / ( (nx0-2)*(ny0-2)*(nz0-2) ) );
+	  }	  
     // end l2norm second
     }
-
-
 
     //---------------------------------------------------------------------
     // check the newton-iteration residuals against the tolerance levels
@@ -1817,10 +1845,7 @@ double tmat_buts[ISIZ1][5][5];
       //}
       break;
     }
-  } // END ITERATIONS
-  } // END PARALLEL
-  } //END DATA
+  } // PARALLEL END
   timer_stop(1);
   maxtime = timer_read(1);
 }
-
