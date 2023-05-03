@@ -94,7 +94,7 @@ void ssor(int niter)
       }
     } // end parallel
     double tmat_blts[ISIZ1][5][5], tv_blts[ISIZ1][5];
-    #pragma acc data copyin(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], \
+    #pragma acc data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], \
     a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], \
     tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
  {
