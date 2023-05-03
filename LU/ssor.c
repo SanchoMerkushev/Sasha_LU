@@ -86,7 +86,7 @@ void ssor(int niter)
   //---------------------------------------------------------------------
   // the timestep loop
   //---------------------------------------------------------------------
-  #pragma acc enter data copyin(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], tmat_buts[:ISIZ1][:5][:5], tv[:ISIZ2][:ISIZ1][:5], delunm[:5])
+  //#pragma acc enter data copyin(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], tmat_buts[:ISIZ1][:5][:5], tv[:ISIZ2][:ISIZ1][:5], delunm[:5])
   { // DATA START
   //#pragma acc parallel
   //{ // PARALLEL START
@@ -103,7 +103,7 @@ void ssor(int niter)
     {
     //#pragma omp master
     tmp2 = dt;
-    //#pragma omp for nowait
+    #pragma acc parallel loop private(k, j, i)
     for (k = 1; k < nz - 1; k++) {
       for (j = jst; j < jend; j++) {
         for (i = ist; i < iend; i++) {
@@ -1316,14 +1316,16 @@ void ssor(int niter)
     //#pragma omp master
     tmp2 = tmp;
     //#pragma omp for nowait
+    #pragma acc parallel loop private(k, j, i)
     for (k = 1; k < nz-1; k++) {
       for (j = jst; j < jend; j++) {
         for (i = ist; i < iend; i++) {
           for (m = 0; m < 5; m++) {
-            u[k][j][i][m] = u[k][j][i][m] + tmp2 * rsd[k][j][i][m];
+            u[k][j][i][m] = u[k][j][i][m] + tmp * rsd[k][j][i][m];
           }
         }
       }
+      // CHANGE tmp2->tmp
     }
     } //end parallel
 
@@ -1669,7 +1671,7 @@ void ssor(int niter)
 	  // zeta-direction flux differences
 	  //---------------------------------------------------------------------
 	  //#pragma omp for schedule(static) nowait
-	    #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
+	   #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
 		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
@@ -1801,6 +1803,7 @@ void ssor(int niter)
     // compute the max-norms of newton iteration residuals
     //---------------------------------------------------------------------
     if ( ((istep % inorm ) == 0 ) || ( istep == itmax ) ) {
+        #pragma acc update host(rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
         // start l2norm second
         //printf("%d l2norm second\n", k);
         //l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0, ist, iend, jst, jend, rsd, rsdnm );      
