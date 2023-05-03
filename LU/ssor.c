@@ -670,9 +670,10 @@ void ssor(int niter)
 	    }
 	  }
 	  printf("%d --- %f\n", istep, rsd[3][4][5][2]);
+	  
+    # pragma acc update host(rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
       // end blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
     } // end k_first
-    # pragma acc update host(rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
 }
     printf("AFTER %d --- %f\n", istep, rsd[3][4][5][2]);
     for (k = nz - 2; k > 0; k--) { // start k_second
