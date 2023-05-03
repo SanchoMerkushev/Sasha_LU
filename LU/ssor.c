@@ -97,11 +97,9 @@ void ssor(int niter)
     //#pragma acc data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], \
     a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], \
     tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
- { // DATA
+    // DATA
     for (k = 1; k < nz -1; k++) { // start k_first
       // start jacld(k);
-          //#pragma acc data copyin(u[k][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[k-1:2][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[k-1:2][:ISIZ2/2*2+1][:ISIZ1/2*2+1]) \
-          //copy(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
 	  double r43;
 	  double c1345;
 	  double c34;
@@ -111,7 +109,7 @@ void ssor(int niter)
 	  c1345 = C1 * C3 * C4 * C5;
 	  c34 = C3 * C4;
 	  //#pragma omp for schedule(static) nowait
-	  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3, r43, c1345, c34)
+	  //#pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3, r43, c1345, c34)
 	  for (j = jst; j < jend; j++) {
 	    for (i = ist; i < iend; i++) {
 	      //---------------------------------------------------------------------
@@ -404,7 +402,7 @@ void ssor(int niter)
 	  //double (*vk)[ldmx/2*2+1][5] = rsd[k];
 	  //double (*vkm1)[ldmx/2*2+1][5] = rsd[k-1];
 	  //#pragma omp for schedule(static) nowait
-	  #pragma acc parallel loop private(i, j, m)
+	  //#pragma acc parallel loop private(i, j, m)
 	  for (j = jst; j < jend; j++) {
 	    for (i = ist; i < iend; i++) {
 	      for (m = 0; m < 5; m++) {
@@ -669,13 +667,10 @@ void ssor(int niter)
 	      rsd[k][j][i][0] = tv_blts[j][0] / tmat_blts[j][0][0];
 	    }
 	  }
-	  #pragma acc parallel loop
-	  for (int w = 0; w < 1; w++) {
-          printf("%d - %d --- %f\n", istep, k, rsd[3][4][5][2]);
-	  }
+
       // end blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
     } // end k_first
-} // DATA
+    // DATA
     for (k = nz - 2; k > 0; k--) { // start k_second
       // start jacu(k);
 	  double r43;
