@@ -97,7 +97,6 @@ void ssor(int niter)
     #pragma acc data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], \
     a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], \
     tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
-    {
     for (k = 1; k < nz -1; k++) { // start k_first
       // start jacld(k);
           //#pragma acc data copyin(u[k][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[k-1:2][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[k-1:2][:ISIZ2/2*2+1][:ISIZ1/2*2+1]) \
@@ -672,7 +671,6 @@ void ssor(int niter)
 	  printf("%d --- %f\n", istep, rsd[3][4][5][2]);
       // end blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
     } // end k_first
-    }
     printf("AFTER %d --- %f\n", istep, rsd[3][4][5][2]);
     for (k = nz - 2; k > 0; k--) { // start k_second
       // start jacu(k);
