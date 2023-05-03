@@ -93,7 +93,7 @@ void ssor(int niter)
         }
       }
     } // end parallel
-    printf("%d %d\n", dy2, tz1);
+    printf("%f %f\n", dy2, tz1);
     double tmat_blts[ISIZ1][5][5], tv_blts[ISIZ1][5];
     #pragma acc data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], \
     a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], \
@@ -121,7 +121,7 @@ void ssor(int niter)
 	      tmp1 = rho_i[k][j][i];
 	      tmp2_jacld = tmp1 * tmp1;
 	      tmp3 = tmp1 * tmp2_jacld;
-	      printf("%d %d\n", dy2, tz1);
+	      printf("%f %f\n", dy2, tz1);
 
 	      d[j][i][0][0] =  1.0 + dt * 2.0 * ( tx1 * dx1 + ty1 * dy1 + tz1 * dz1 );
 	      d[j][i][1][0] =  0.0;
