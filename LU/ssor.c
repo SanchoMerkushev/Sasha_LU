@@ -669,10 +669,11 @@ void ssor(int niter)
 	      rsd[k][j][i][0] = tv_blts[j][0] / tmat_blts[j][0][0];
 	    }
 	  }
+	  printf("%d --- %f\n", istep, rsd[3][4][5][2]);
       // end blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
     } // end k_first
     }
-    printf("%f\n", rsd[3][4][5][2]);
+    printf("%d --- %f\n", istep, rsd[3][4][5][2]);
     for (k = nz - 2; k > 0; k--) { // start k_second
       // start jacu(k);
 	  double r43;
