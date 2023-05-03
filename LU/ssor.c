@@ -24,6 +24,7 @@ void ssor(int niter)
   double tmp, tmp2, tv[ISIZ2][ISIZ1][5];
   double delunm[5];
   double tmat_blts[ISIZ1][5][5], tv_blts[ISIZ1][5];
+  double tmat_buts[ISIZ1][5][5];
   //---------------------------------------------------------------------
   // begin pseudo-time stepping iterations
   //---------------------------------------------------------------------
@@ -1662,7 +1663,7 @@ void ssor(int niter)
 	  // zeta-direction flux differences
 	  //---------------------------------------------------------------------
 	  //#pragma omp for schedule(static) nowait
-	  #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
+	    #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
 		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
