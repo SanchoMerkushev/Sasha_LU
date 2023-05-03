@@ -420,7 +420,7 @@ void ssor(int niter)
 	  //#pragma omp for schedule(static) nowait
 	  //#pragma acc data create(tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5])
 	  for (diag = jst; diag < jend; diag++) {
-	    #pragma acc parallel loop private(t, i, j, m, tmp_blts, tmp1_blts)
+	    //#pragma acc parallel loop private(t, i, j, m, tmp_blts, tmp1_blts)
 	    for (t = 0; t <= diag - jst; t++) {
 	      j = diag - t;
 	      i = jst + t;
@@ -544,7 +544,7 @@ void ssor(int niter)
 	    }
 	  }
 	  for (diag = jst + 1; diag < jend; diag++) {
-	    #pragma acc parallel loop private(t, i, j, m, tmp_blts, tmp1_blts)
+	    //#pragma acc parallel loop private(t, i, j, m, tmp_blts, tmp1_blts)
 	    for (t = 0; t <= (jend - jst) - diag; t++) {
 	      j = jend - 1 - t;
 	      i = diag + t;
