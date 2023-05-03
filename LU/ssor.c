@@ -1014,7 +1014,7 @@ void ssor(int niter)
 	  //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts)
 	  //#pragma acc data create(tmat_buts[:ISIZ1][:5][:5])
 	  for (diag = jend - 1; diag > jst; diag--) {
-	    //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts, diag, t)
+	    //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts, t)
 	    for (t = 0; t <= (jend - jst) - diag; t++) {
 	       j = jend - 1 - t;
 	       i = diag + t;
@@ -1142,7 +1142,7 @@ void ssor(int niter)
 	  }
 	  //#pragma acc data create(tmat_buts[:ISIZ1][:5][:5])
 	  for (diag = jend  - 1; diag >= jst; diag--) {
-	    //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts, diag, t)
+	    //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts, t)
 	    for (t = 0; t <= diag - jst; t++) {
 	      j = diag - t;
 	      i = jst + t;
