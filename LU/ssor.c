@@ -670,7 +670,7 @@ void ssor(int niter)
 	    }
 	  }
 	  #pragma acc parallel loop
-	  {
+	  for (int w = 0; w < 1; w++) {
           printf("%d - %d --- %f\n", istep, k, rsd[3][4][5][2]);
 	  }
       // end blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
