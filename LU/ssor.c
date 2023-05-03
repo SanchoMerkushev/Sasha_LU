@@ -94,9 +94,9 @@ void ssor(int niter)
       }
     } // end parallel
     double tmat_blts[ISIZ1][5][5], tv_blts[ISIZ1][5];
-    #pragma acc data copyin(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], \
-    a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5]) \
-    create(tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5]) copy(rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
+    #pragma acc data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], \
+    a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], \
+    tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
     {
     for (k = 1; k < nz -1; k++) { // start k_first
       // start jacld(k);
@@ -671,6 +671,7 @@ void ssor(int niter)
 	  }
       // end blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
     } // end k_first
+    }
     for (k = nz - 2; k > 0; k--) { // start k_second
       // start jacu(k);
 	  double r43;
@@ -1265,7 +1266,6 @@ void ssor(int niter)
 	  }
       // end buts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, tv, du, au, bu, cu, ist, iend, jst, jend, nx0, ny0 );
     } // end k_second
-    }
     tmp2 = tmp;
     for (k = 1; k < nz-1; k++) { // start k_third
       for (j = jst; j < jend; j++) {
