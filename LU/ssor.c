@@ -127,7 +127,7 @@ void ssor(int niter)
 	  c1345 = C1 * C3 * C4 * C5;
 	  c34 = C3 * C4;
 	  //#pragma omp for schedule(static) nowait
-	  //#pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3)
+	  #pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3)
 	  for (j = jst; j < jend; j++) {
 	    for (i = ist; i < iend; i++) {
 	      //---------------------------------------------------------------------
