@@ -93,12 +93,11 @@ void ssor(int niter)
         }
       }
     } // end parallel
-    printf("%f %f\n", dy2, tz1);
     double tmat_blts[ISIZ1][5][5], tv_blts[ISIZ1][5];
     #pragma acc data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], \
     a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], \
     tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
- {
+ { // DATA
     for (k = 1; k < nz -1; k++) { // start k_first
       // start jacld(k);
           //#pragma acc data copyin(u[k][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], qs[k-1:2][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[k-1:2][:ISIZ2/2*2+1][:ISIZ1/2*2+1]) \
@@ -121,7 +120,6 @@ void ssor(int niter)
 	      tmp1 = rho_i[k][j][i];
 	      tmp2_jacld = tmp1 * tmp1;
 	      tmp3 = tmp1 * tmp2_jacld;
-	      printf("%f %f\n", dy2, tz1);
 
 	      d[j][i][0][0] =  1.0 + dt * 2.0 * ( tx1 * dx1 + ty1 * dy1 + tz1 * dz1 );
 	      d[j][i][1][0] =  0.0;
@@ -671,11 +669,11 @@ void ssor(int niter)
 	      rsd[k][j][i][0] = tv_blts[j][0] / tmat_blts[j][0][0];
 	    }
 	  }
-	  
+          printf("%d - %d --- %f\n", istep, k, rsd[3][4][5][2]);
       // end blts( ISIZ1, ISIZ2, ISIZ3, nx, ny, nz, k, omega, rsd, a, b, c, d, ist, iend, jst, jend, nx0, ny0 );
     } // end k_first
     printf("%d --- %f\n", istep, rsd[3][4][5][2]);
-}
+} // DATA
     printf("AFTER %d --- %f\n", istep, rsd[3][4][5][2]);
     for (k = nz - 2; k > 0; k--) { // start k_second
       // start jacu(k);
