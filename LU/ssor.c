@@ -578,7 +578,7 @@ void ssor(int niter)
 	  //#pragma omp for schedule(static) nowait
 	  //for (j = jend - 1; j >= jst; j--) {
 	    //for (i = iend - 1; i >= ist; i--) {
-	    #pragma acc parallel loop private(j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts) independent
+	   #pragma acc for parallel private(j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts)
 	    for (k = min(62, pl - 2); k >= max(1, pl - ISIZ1 + 2 - ISIZ1 + 2); k--) {
 	      for (j = min(62, pl - k - 1); j >= max(1, pl - k - ISIZ1 + 2); j--) {
 	      i = pl - k - j;
