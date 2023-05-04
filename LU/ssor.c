@@ -103,7 +103,7 @@ void ssor(int niter)
     {
     //#pragma omp master
     tmp2 = dt;
-    #pragma acc parallel loop private(k, j, i) collapse(4)
+    #pragma acc parallel loop private(k, j, i) collapse(2)
     for (k = 1; k < nz - 1; k++) {
       for (j = jst; j < jend; j++) {
         for (i = ist; i < iend; i++) {
@@ -1315,7 +1315,7 @@ void ssor(int niter)
     //#pragma omp master
     tmp2 = tmp;
     //#pragma omp for nowait
-    #pragma acc parallel loop private(k, j, i)
+    #pragma acc parallel loop private(k, j, i) collapse(2)
     for (k = 1; k < nz-1; k++) {
       for (j = jst; j < jend; j++) {
         for (i = ist; i < iend; i++) {
@@ -1323,8 +1323,8 @@ void ssor(int niter)
             u[k][j][i][m] = u[k][j][i][m] + tmp * rsd[k][j][i][m];
           }
         }
-      }
       // CHANGE tmp2->tmp
+      }
     }
     } //end parallel
 
@@ -1418,7 +1418,7 @@ void ssor(int niter)
 	  #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
-		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
+		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41) 
 	  for (k = 1; k < nz - 1; k++) {
 	    for (j = jst; j < jend; j++) {
 	      for (i = 0; i < nx; i++) {
@@ -1541,7 +1541,7 @@ void ssor(int niter)
 	  #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
-		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
+		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41) 
 	  for (k = 1; k < nz - 1; k++) {
 	    for (i = ist; i < iend; i++) {
 	      for (j = 0; j < ny; j++) {
@@ -1673,7 +1673,7 @@ void ssor(int niter)
 	  #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
-		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
+		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41) 
 	  for (j = jst; j < jend; j++) {
 	    for (i = ist; i < iend; i++) {
 	      for (k = 0; k < nz; k++) {
