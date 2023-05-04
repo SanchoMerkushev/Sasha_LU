@@ -39,6 +39,7 @@ void ssor(int niter)
   //---------------------------------------------------------------------
   // begin pseudo-time stepping iterations
   //---------------------------------------------------------------------
+  printf("Before data");
    #pragma acc data copy(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:ISIZ1][:5][:5], tv_blts[:ISIZ1][:ISIZ1][:5], tmat_buts[:ISIZ1][:5][:5], tv[:ISIZ2][:ISIZ1][:5], delunm[:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5]) 
   { // DATA START
    
@@ -52,9 +53,12 @@ void ssor(int niter)
   //#pragma omp parallel default(shared) private(m,n,i,j)
   { // start parallel
   //#pragma omp for nowait
-   #pragma acc parallel loop private(k, j, i, n, m)
+  printf("After data");
+   #pragma acc parallel loop
   for (k = jst; k < jend; k++) {
+          #pragma acc loop
 	  for (j = jst; j < jend; j++) {
+	    #pragma acc loop
 	    for (i = ist; i < iend; i++) {
 	      for (n = 0; n < 5; n++) {
 		for (m = 0; m < 5; m++) {
@@ -67,9 +71,12 @@ void ssor(int niter)
 	    }
 	  }
 	}
-   #pragma acc parallel loop private(k, j, i, n, m)
+     printf("After abcd");
+   #pragma acc parallel loop private
     for (k = jst; k < jend; k++) {
+          #pragma acc loop
 	  for (j = jend - 1; j >= jst; j--) {
+	    #pragma acc loop
 	    for (i = iend - 1; i >= ist; i--) {
 	      for (n = 0; n < 5; n++) {
 		for (m = 0; m < 5; m++) {
@@ -83,6 +90,7 @@ void ssor(int niter)
 	  }
        }
   } //end parallel
+   printf("After aubucudu");
   for (i = 1; i <= t_last; i++) {
     timer_clear(i);
   }
