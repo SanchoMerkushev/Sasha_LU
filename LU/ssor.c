@@ -135,6 +135,7 @@ void ssor(int niter)
 	  //#pragma omp for schedule(static) nowait
 	  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3) collapse(2)
 	  for (j = jst; j < jend; j++) {
+	    #pragma acc loop
 	    for (i = ist; i < iend; i++) {
 	      //---------------------------------------------------------------------
 	      // form the block daigonal
@@ -443,15 +444,12 @@ void ssor(int niter)
 	      }
 	    }
 	  }
-
-
-	  //#pragma omp for schedule(static) nowait
-	  //#pragma acc data create(tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5])
-	  for (diag = jst; diag < jend; diag++) {
+          for (diag = jst; diag < jend; diag++) {
 	    #pragma acc parallel loop private(t, i, j, m, tmp_blts, tmp1_blts)
 	    for (t = 0; t <= diag - jst; t++) {
 	      j = diag - t;
 	      i = jst + t;
+	      #pragma acc loop
 	      for (m = 0; m < 5; m++) {
 		tv_blts[j][m] =  rsd[k][j][i][m]
 		  - omega * ( b[j][i][0][m] * rsd[k][j-1][i][0]
@@ -471,6 +469,7 @@ void ssor(int niter)
 	      // 
 	      // forward elimination
 	      //---------------------------------------------------------------------
+	      #pragma acc loop
 	      for (m = 0; m < 5; m++) {
 		tmat_blts[j][m][0] = d[j][i][0][m];
 		tmat_blts[j][m][1] = d[j][i][1][m];
@@ -480,6 +479,7 @@ void ssor(int niter)
 	      }
 
 	      tmp1_blts = 1.0 / tmat_blts[j][0][0];
+	      /*
 	      tmp_blts = tmp1_blts * tmat_blts[j][1][0];
 	      tmat_blts[j][1][1] =  tmat_blts[j][1][1] - tmp_blts * tmat_blts[j][0][1];
 	      tmat_blts[j][1][2] =  tmat_blts[j][1][2] - tmp_blts * tmat_blts[j][0][2];
@@ -507,6 +507,15 @@ void ssor(int niter)
 	      tmat_blts[j][4][3] =  tmat_blts[j][4][3] - tmp_blts * tmat_blts[j][0][3];
 	      tmat_blts[j][4][4] =  tmat_blts[j][4][4] - tmp_blts * tmat_blts[j][0][4];
 	      tv_blts[j][4] = tv_blts[j][4] - tv_blts[j][0] * tmp_blts;
+	      */
+	      #pragma acc loop
+	      for (m = 1; m < 5; m++) {
+	          tmat_blts[j][m][1] =  tmat_blts[j][m][1] - tmp1_blts * tmat_blts[j][m][0] * tmat_blts[j][0][1];
+	          tmat_blts[j][m][2] =  tmat_blts[j][m][2] - tmp1_blts * tmat_blts[j][m][0] * tmat_blts[j][0][2];
+	          tmat_blts[j][m][3] =  tmat_blts[j][m][3] - tmp1_blts * tmat_blts[j][m][0] * tmat_blts[j][0][3];
+	          tmat_blts[j][m][4] =  tmat_blts[j][m][4] - tmp1_blts * tmat_blts[j][m][0] * tmat_blts[j][0][4];
+	          tv_blts[j][m] = tv_blts[j][m] - tv_blts[j][0] * tmp1_blts * tmat_blts[j][m][0];
+	      }
 
 	      tmp1_blts = 1.0 / tmat_blts[j][1][1];
 	      tmp_blts = tmp1_blts * tmat_blts[j][2][1];
@@ -577,6 +586,7 @@ void ssor(int niter)
 	    for (t = 0; t <= (jend - jst) - diag; t++) {
 	      j = jend - 1 - t;
 	      i = diag + t;
+	      #pragma acc loop
 	      for (m = 0; m < 5; m++) {
 		tv_blts[j][m] =  rsd[k][j][i][m]
 		  - omega * ( b[j][i][0][m] * rsd[k][j-1][i][0]
@@ -596,6 +606,7 @@ void ssor(int niter)
 	      // 
 	      // forward elimination
 	      //---------------------------------------------------------------------
+	      #pragma acc loop
 	      for (m = 0; m < 5; m++) {
 		tmat_blts[j][m][0] = d[j][i][0][m];
 		tmat_blts[j][m][1] = d[j][i][1][m];
@@ -605,6 +616,7 @@ void ssor(int niter)
 	      }
 
 	      tmp1_blts = 1.0 / tmat_blts[j][0][0];
+	      /*
 	      tmp_blts = tmp1_blts * tmat_blts[j][1][0];
 	      tmat_blts[j][1][1] =  tmat_blts[j][1][1] - tmp_blts * tmat_blts[j][0][1];
 	      tmat_blts[j][1][2] =  tmat_blts[j][1][2] - tmp_blts * tmat_blts[j][0][2];
@@ -632,6 +644,15 @@ void ssor(int niter)
 	      tmat_blts[j][4][3] =  tmat_blts[j][4][3] - tmp_blts * tmat_blts[j][0][3];
 	      tmat_blts[j][4][4] =  tmat_blts[j][4][4] - tmp_blts * tmat_blts[j][0][4];
 	      tv_blts[j][4] = tv_blts[j][4] - tv_blts[j][0] * tmp_blts;
+	      */
+	      #pragma acc loop
+	      for (m = 1; m < 5; m++) {
+	          tmat_blts[j][m][1] =  tmat_blts[j][m][1] - tmp1_blts * tmat_blts[j][m][0] * tmat_blts[j][0][1];
+	          tmat_blts[j][m][2] =  tmat_blts[j][m][2] - tmp1_blts * tmat_blts[j][m][0] * tmat_blts[j][0][2];
+	          tmat_blts[j][m][3] =  tmat_blts[j][m][3] - tmp1_blts * tmat_blts[j][m][0] * tmat_blts[j][0][3];
+	          tmat_blts[j][m][4] =  tmat_blts[j][m][4] - tmp1_blts * tmat_blts[j][m][0] * tmat_blts[j][0][4];
+	          tv_blts[j][m] = tv_blts[j][m] - tv_blts[j][0] * tmp1_blts * tmat_blts[j][m][0];
+	      }
 
 	      tmp1_blts = 1.0 / tmat_blts[j][1][1];
 	      tmp_blts = tmp1_blts * tmat_blts[j][2][1];
@@ -696,6 +717,7 @@ void ssor(int niter)
 	      rsd[k][j][i][0] = tv_blts[j][0] / tmat_blts[j][0][0];
 	    }
 	  }
+
       //end blts( ISIZ1, ISIZ2, ISIZ3,
             //nx, ny, nz, k,
             //omega,
@@ -726,6 +748,7 @@ void ssor(int niter)
 	  //#pragma omp for schedule(static) nowait
 	  #pragma acc parallel loop private(j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu) collapse(2)
 	  for (j = jend - 1; j >= jst; j--) {
+	    #pragma acc loop
 	    for (i = iend - 1; i >= ist; i--) {
 	      //---------------------------------------------------------------------t 
 	      // form the block daigonal
