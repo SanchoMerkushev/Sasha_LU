@@ -48,6 +48,7 @@ void ssor(int niter)
   //#pragma omp parallel default(shared) private(m,n,i,j)
   { // start parallel
   //#pragma omp for nowait
+   #pragma acc parallel loop private(k, j, i, n, m)
   for (k = jst; k < jend; k++) {
 	  for (j = jst; j < jend; j++) {
 	    for (i = ist; i < iend; i++) {
@@ -62,7 +63,7 @@ void ssor(int niter)
 	    }
 	  }
 	}
-  //#pragma omp for nowait
+   #pragma acc parallel loop private(k, j, i, n, m)
     for (k = jst; k < jend; k++) {
 	  for (j = jend - 1; j >= jst; j--) {
 	    for (i = iend - 1; i >= ist; i--) {
@@ -117,7 +118,7 @@ void ssor(int niter)
     {
     //#pragma omp master
     tmp2 = dt;
-    //#pragma acc parallel loop private(k, j, i)
+    #pragma acc parallel loop private(k, j, i)
     for (k = 1; k < nz - 1; k++) {
       for (j = jst; j < jend; j++) {
         for (i = ist; i < iend; i++) {
