@@ -72,10 +72,10 @@ double dt, omega, tolrsd[5], rsdnm[5], errnm[5], frc, ttotal;
 int itmax, invert;
 
 /* common/cjac/ */
-double a[ISIZ2][ISIZ1/2*2+1][5][5];
-double b[ISIZ2][ISIZ1/2*2+1][5][5];
-double c[ISIZ2][ISIZ1/2*2+1][5][5];
-double d[ISIZ2][ISIZ1/2*2+1][5][5];
+double a[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+double b[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+double c[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+double d[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
 
 /* common/cjacu/ */
 double au[ISIZ2][ISIZ1/2*2+1][5][5];

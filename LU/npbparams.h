@@ -22,6 +22,6 @@
 #define CS2 "$(CC)"
 #define CS3 "-lm"
 #define CS4 "-I../common"
-#define CS5 "-g -Wall -O3 -acc -ta=multicore -Minfo=all ..."
-#define CS6 "-O3 -acc -ta=multicore -Minfo=all -mcmodel=..."
+#define CS5 "-O3 -acc -ta=multicore -Minfo=all  -mcmodel..."
+#define CS6 "-O3 -acc -ta=multicore -Minfo=all  -mcmodel..."
 #define CS7 "randdp"
