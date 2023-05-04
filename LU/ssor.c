@@ -72,7 +72,7 @@ void ssor(int niter)
 	  }
 	}
      printf("After abcd");
-   #pragma acc parallel loop private
+   #pragma acc parallel loop
     for (k = jst; k < jend; k++) {
           #pragma acc loop
 	  for (j = jend - 1; j >= jst; j--) {
