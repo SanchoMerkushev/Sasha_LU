@@ -133,7 +133,7 @@ void ssor(int niter)
 	  c1345 = C1 * C3 * C4 * C5;
 	  c34 = C3 * C4;
 	  //#pragma omp for schedule(static) nowait
-	  #pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3)
+	  #pragma acc parallel loop private(j, i, tmp1, tmp2_jacld, tmp3)
 	  for (j = jst; j < jend; j++) {
 	    for (i = ist; i < iend; i++) {
 	      //---------------------------------------------------------------------
@@ -1049,7 +1049,6 @@ void ssor(int niter)
 	  }
 
 	  //#pragma omp for schedule(static) nowait
-	  //#pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts)
 	  //#pragma acc data create(tmat_buts[:ISIZ1][:5][:5])
 	  for (diag = jend - 1; diag > jst; diag--) {
 	    #pragma acc parallel loop private(i, j, m, tmp_buts, tmp1_buts, t)
@@ -1671,7 +1670,7 @@ void ssor(int niter)
 	  // zeta-direction flux differences
 	  //---------------------------------------------------------------------
 	  //#pragma omp for schedule(static) nowait
-	   #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
+	  #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
 		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
@@ -1802,8 +1801,9 @@ void ssor(int niter)
     //---------------------------------------------------------------------
     // compute the max-norms of newton iteration residuals
     //---------------------------------------------------------------------
-    if ( ((istep % inorm ) == 0 ) || ( istep == itmax ) ) {
-        #pragma acc update host(rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
+  } 
+  //} // PARALLEL END
+  } // DATA END
         // start l2norm second
         //printf("%d l2norm second\n", k);
         //l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0, ist, iend, jst, jend, rsd, rsdnm );      
@@ -1840,8 +1840,6 @@ void ssor(int niter)
 	    rsdnm[m] = sqrt ( rsdnm[m] / ( (nx0-2)*(ny0-2)*(nz0-2) ) );
 	  }	  
     // end l2norm second
-    }
-
     //---------------------------------------------------------------------
     // check the newton-iteration residuals against the tolerance levels
     //---------------------------------------------------------------------
@@ -1852,11 +1850,8 @@ void ssor(int niter)
       printf(" \n convergence was achieved after %4d pseudo-time steps\n",
           istep);
       //}
-      break;
+      //break;
     }
-  } 
-  //} // PARALLEL END
-  } // DATA END
   timer_stop(1);
   maxtime = timer_read(1);
 }

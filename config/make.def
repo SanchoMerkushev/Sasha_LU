@@ -76,7 +76,7 @@ FLINKFLAGS = -O3 -fopenmp -mcmodel=medium
 #---------------------------------------------------------------------------
 # This is the C compiler used for C programs
 #---------------------------------------------------------------------------
-CC = nvc
+CC = pgcc
 
 # This links C programs; usually the same as ${CC}
 CLINK	= $(CC)
@@ -106,13 +106,13 @@ C_INC = -I../common
 # _LARGEFILE64_SOURCE - are standard compiler flags which allow to work with 
 # files larger than 2GB.
 #---------------------------------------------------------------------------
-CFLAGS = -O3 -acc -ta=nvidia -Minfo=all  -mcmodel=medium
+CFLAGS = -O3 -acc -ta=tesla:c75,managed -Minfo=all  -mcmodel=medium
 
 #---------------------------------------------------------------------------
 # Global *link time* flags. Flags for increasing maximum executable 
 # size usually go here. 
 #---------------------------------------------------------------------------
-CLINKFLAGS = -O3 -acc -ta=nvidia -Minfo=all  -mcmodel=medium
+CLINKFLAGS = -O3 -acc -ta=tesla:c75,managed -Minfo=all  -mcmodel=medium
 
 
 #---------------------------------------------------------------------------
