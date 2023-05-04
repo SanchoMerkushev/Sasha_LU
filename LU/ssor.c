@@ -150,8 +150,7 @@ void ssor(int niter)
       //#pragma omp master
       // start jacld(k);
 	  //#pragma omp for schedule(static) nowait
-	  #pragma acc parallel 
-	  {
+	  #pragma acc parallel {
 	  #pragma acc loop private(tmp_blts, tmp1_blts, tmp1, tmp2_jacld, tmp3) independent
 	  for (k = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2); k < min(pl - 1, ISIZ1 - 1); k++) {
 	    for (j = max(1, pl - k - ISIZ1 + 2); j < min(pl - k, ISIZ1 - 1); j++) {
@@ -892,7 +891,7 @@ void ssor(int niter)
 		           + cu[j][i][3][m] * rsd[k+1][j][i][3]
 		           + cu[j][i][4][m] * rsd[k+1][j][i][4] );
 	      }
-	      }
+	      
 	for (m = 0; m < 5; m++) {
 		tv[j][i][m] = tv[j][i][m]
 		  + omega * ( bu[j][i][0][m] * rsd[k][j+1][i][0]
@@ -1017,6 +1016,7 @@ void ssor(int niter)
 	  } // end i
       // end buts(k);
     } // END K SECOND
+    }
     
     //#pragma omp barrier
     //---------------------------------------------------------------------
