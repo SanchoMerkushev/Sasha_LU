@@ -121,6 +121,7 @@ void ssor(int niter)
     tmp2 = dt;
     #pragma acc parallel loop private(k, j, i)
     for (k = 1; k < nz - 1; k++) {
+      #pragma acc loop
       for (j = jst; j < jend; j++) {
         for (i = ist; i < iend; i++) {
           for (m = 0; m < 5; m++) {
@@ -1125,6 +1126,7 @@ void ssor(int niter)
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
 		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
 	  for (k = 1; k < nz - 1; k++) {
+	    #pragma acc loop
 	    for (j = jst; j < jend; j++) {
 	      for (i = 0; i < nx; i++) {
 		flux[i][0] = u[k][j][i][1];
@@ -1248,6 +1250,7 @@ void ssor(int niter)
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
 		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
 	  for (k = 1; k < nz - 1; k++) {
+	    #pragma acc loop
 	    for (i = ist; i < iend; i++) {
 	      for (j = 0; j < ny; j++) {
 		flux[j][0] = u[k][j][i][2];
@@ -1380,6 +1383,7 @@ void ssor(int niter)
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
 		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
 	  for (j = jst; j < jend; j++) {
+	    #pragma acc loop
 	    for (i = ist; i < iend; i++) {
 	      for (k = 0; k < nz; k++) {
 		u_rhs[k][0] = u[k][j][i][0];
