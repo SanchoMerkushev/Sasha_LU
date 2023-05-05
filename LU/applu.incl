@@ -87,16 +87,16 @@ extern double dt, omega, tolrsd[5], rsdnm[5], errnm[5], frc, ttotal;
 extern int itmax, invert;
 
 /* common/cjac/ */
-extern double a[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double b[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double c[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double d[ISIZ2][ISIZ1/2*2+1][5][5];
+extern double a[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+extern double b[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+extern double c[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+extern double d[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
 
 /* common/cjacu/ */
-extern double au[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double bu[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double cu[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double du[ISIZ2][ISIZ1/2*2+1][5][5];
+extern double au[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+extern double bu[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+extern double cu[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+extern double du[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
 
 
 //---------------------------------------------------------------------

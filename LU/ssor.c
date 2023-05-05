@@ -22,9 +22,10 @@ void ssor(int niter)
   int i, j, k, m, n, pl;
   int istep;
   double tmp, tmp2;
+  int k_start, k_end, j_start, j_end;
   double delunm[5];
-  double tmat_blts[ISIZ1][5][5], tv_blts[ISIZ1][5];
-  double tmat_buts[ISIZ1][5][5], tv_buts[ISIZ2][ISIZ1][5];
+  double tmat_blts[ISIZ1][ISIZ1][5][5], tv_blts[ISIZ1][ISIZ1][5];
+  double tmat_buts[ISIZ1][ISIZ1][5][5], tv_buts[ISIZ2][ISIZ1][5];
   double tmp_buts, tmp1_buts;
   double r43;
   double c1345;
@@ -46,34 +47,38 @@ void ssor(int niter)
   // formed, if applicable on given architecture, before timestepping).
   //---------------------------------------------------------------------
   //#pragma omp parallel default(shared) private(m,n,i,j)
-  { // start parallel
   //#pragma omp for nowait
-  for (j = jst; j < jend; j++) {
-    for (i = ist; i < iend; i++) {
-      for (n = 0; n < 5; n++) {
-        for (m = 0; m < 5; m++) {
-          a[j][i][n][m] = 0.0;
-          b[j][i][n][m] = 0.0;
-          c[j][i][n][m] = 0.0;
-          d[j][i][n][m] = 0.0;
+  //#pragma acc parallel private(k,m,n,i,j)
+  for (k = 0; k < ISIZ1; k++) {
+    for (j = jst; j < jend; j++) {
+      for (i = ist; i < iend; i++) {
+        for (n = 0; n < 5; n++) {
+          for (m = 0; m < 5; m++) {
+            a[k][j][i][n][m] = 0.0;
+            b[k][j][i][n][m] = 0.0;
+            c[k][j][i][n][m] = 0.0;
+            d[k][j][i][n][m] = 0.0;
+          }
         }
       }
     }
   }
   //#pragma omp for nowait
-  for (j = jend - 1; j >= jst; j--) {
-    for (i = iend - 1; i >= ist; i--) {
-      for (n = 0; n < 5; n++) {
-        for (m = 0; m < 5; m++) {
-          au[j][i][n][m] = 0.0;
-          bu[j][i][n][m] = 0.0;
-          cu[j][i][n][m] = 0.0;
-          du[j][i][n][m] = 0.0;
+  //#pragma acc parallel private(k,m,n,i,j)
+  for (k = ISIZ1 - 1; k >= 0; k--) {
+    for (j = jend - 1; j >= jst; j--) {
+      for (i = iend - 1; i >= ist; i--) {
+        for (n = 0; n < 5; n++) {
+          for (m = 0; m < 5; m++) {
+            au[k][j][i][n][m] = 0.0;
+            bu[k][j][i][n][m] = 0.0;
+            cu[k][j][i][n][m] = 0.0;
+            du[k][j][i][n][m] = 0.0;
+          }
         }
       }
     }
   }
-  } //end parallel
   for (i = 1; i <= t_last; i++) {
     timer_clear(i);
   }
@@ -97,7 +102,7 @@ void ssor(int niter)
   //---------------------------------------------------------------------
   // the timestep loop
   //---------------------------------------------------------------------
-  //#pragma acc data copy(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:5][:5], tv_blts[:ISIZ1][:5], tmat_buts[:ISIZ1][:5][:5], tv_buts[:ISIZ2][:ISIZ1][:5], delunm[:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
+  #pragma acc data copy(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:ISIZ1][:5][:5], tv_blts[:ISIZ1][:ISIZ1][:5], tmat_buts[:ISIZ1][:ISIZ1][:5][:5], tv_buts[:ISIZ2][:ISIZ1][:5], delunm[:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
   { // DATA START
   //#pragma acc parallel
   //{ // PARALLEL START
@@ -132,10 +137,14 @@ void ssor(int niter)
       // form the lower triangular part of the jacobian matrix
       //---------------------------------------------------------------------
       // start jacld(k);
-	  //#pragma acc parallel loop private(k, tmp_blts, tmp1_blts, tmp1, tmp2_jacld, tmp3)
-	  for (k = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2); k < min(pl - 1, ISIZ1 - 1); k++) {
+          k_start = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2);
+          k_end = min(pl - 1, ISIZ1 - 1);
+	  #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp_blts, tmp1_blts, tmp1, tmp2_jacld, tmp3)
+	  for (k = k_start; k < k_end; k++) {
+	     j_start = max(1, pl - k - ISIZ1 + 2);
+	     j_end = min(pl - k, ISIZ1 - 1);
 	    //#pragma acc loop
-	    for (j = max(1, pl - k - ISIZ1 + 2); j < min(pl - k, ISIZ1 - 1); j++) {
+	    for (j = j_start; j < j_end; j++) {
 	      i = pl - k - j;
 	      //---------------------------------------------------------------------
 	      // form the block daigonal
@@ -144,40 +153,40 @@ void ssor(int niter)
 	      tmp2_jacld = tmp1 * tmp1;
 	      tmp3 = tmp1 * tmp2_jacld;
 
-	      d[j][i][0][0] =  1.0 + dt * 2.0 * ( tx1 * dx1 + ty1 * dy1 + tz1 * dz1 );
-	      d[j][i][1][0] =  0.0;
-	      d[j][i][2][0] =  0.0;
-	      d[j][i][3][0] =  0.0;
-	      d[j][i][4][0] =  0.0;
+	      d[k][j][i][0][0] =  1.0 + dt * 2.0 * ( tx1 * dx1 + ty1 * dy1 + tz1 * dz1 );
+	      d[k][j][i][1][0] =  0.0;
+	      d[k][j][i][2][0] =  0.0;
+	      d[k][j][i][3][0] =  0.0;
+	      d[k][j][i][4][0] =  0.0;
 
-	      d[j][i][0][1] = -dt * 2.0
+	      d[k][j][i][0][1] = -dt * 2.0
 		* ( tx1 * r43 + ty1 + tz1 ) * c34 * tmp2_jacld * u[k][j][i][1];
-	      d[j][i][1][1] =  1.0
+	      d[k][j][i][1][1] =  1.0
 		+ dt * 2.0 * c34 * tmp1 * ( tx1 * r43 + ty1 + tz1 )
 		+ dt * 2.0 * ( tx1 * dx2 + ty1 * dy2 + tz1 * dz2 );
-	      d[j][i][2][1] = 0.0;
-	      d[j][i][3][1] = 0.0;
-	      d[j][i][4][1] = 0.0;
+	      d[k][j][i][2][1] = 0.0;
+	      d[k][j][i][3][1] = 0.0;
+	      d[k][j][i][4][1] = 0.0;
 
-	      d[j][i][0][2] = -dt * 2.0
+	      d[k][j][i][0][2] = -dt * 2.0
 		* ( tx1 + ty1 * r43 + tz1 ) * c34 * tmp2_jacld * u[k][j][i][2];
-	      d[j][i][1][2] = 0.0;
-	      d[j][i][2][2] = 1.0
+	      d[k][j][i][1][2] = 0.0;
+	      d[k][j][i][2][2] = 1.0
 		+ dt * 2.0 * c34 * tmp1 * ( tx1 + ty1 * r43 + tz1 )
 		+ dt * 2.0 * ( tx1 * dx3 + ty1 * dy3 + tz1 * dz3 );
-	      d[j][i][3][2] = 0.0;
-	      d[j][i][4][2] = 0.0;
+	      d[k][j][i][3][2] = 0.0;
+	      d[k][j][i][4][2] = 0.0;
 
-	      d[j][i][0][3] = -dt * 2.0
+	      d[k][j][i][0][3] = -dt * 2.0
 		* ( tx1 + ty1 + tz1 * r43 ) * c34 * tmp2_jacld * u[k][j][i][3];
-	      d[j][i][1][3] = 0.0;
-	      d[j][i][2][3] = 0.0;
-	      d[j][i][3][3] = 1.0
+	      d[k][j][i][1][3] = 0.0;
+	      d[k][j][i][2][3] = 0.0;
+	      d[k][j][i][3][3] = 1.0
 		+ dt * 2.0 * c34 * tmp1 * ( tx1 + ty1 + tz1 * r43 )
 		+ dt * 2.0 * ( tx1 * dx4 + ty1 * dy4 + tz1 * dz4 );
-	      d[j][i][4][3] = 0.0;
+	      d[k][j][i][4][3] = 0.0;
 
-	      d[j][i][0][4] = -dt * 2.0
+	      d[k][j][i][0][4] = -dt * 2.0
 		* ( ( ( tx1 * ( r43*c34 - c1345 )
 		        + ty1 * ( c34 - c1345 )
 		        + tz1 * ( c34 - c1345 ) ) * ( u[k][j][i][1]*u[k][j][i][1] )
@@ -190,19 +199,19 @@ void ssor(int niter)
 		    ) * tmp3
 		    + ( tx1 + ty1 + tz1 ) * c1345 * tmp2_jacld * u[k][j][i][4] );
 
-	      d[j][i][1][4] = dt * 2.0 * tmp2_jacld * u[k][j][i][1]
+	      d[k][j][i][1][4] = dt * 2.0 * tmp2_jacld * u[k][j][i][1]
 		* ( tx1 * ( r43*c34 - c1345 )
 		  + ty1 * (     c34 - c1345 )
 		  + tz1 * (     c34 - c1345 ) );
-	      d[j][i][2][4] = dt * 2.0 * tmp2_jacld * u[k][j][i][2]
+	      d[k][j][i][2][4] = dt * 2.0 * tmp2_jacld * u[k][j][i][2]
 		* ( tx1 * ( c34 - c1345 )
 		  + ty1 * ( r43*c34 -c1345 )
 		  + tz1 * ( c34 - c1345 ) );
-	      d[j][i][3][4] = dt * 2.0 * tmp2_jacld * u[k][j][i][3]
+	      d[k][j][i][3][4] = dt * 2.0 * tmp2_jacld * u[k][j][i][3]
 		* ( tx1 * ( c34 - c1345 )
 		  + ty1 * ( c34 - c1345 )
 		  + tz1 * ( r43*c34 - c1345 ) );
-	      d[j][i][4][4] = 1.0
+	      d[k][j][i][4][4] = 1.0
 		+ dt * 2.0 * ( tx1  + ty1 + tz1 ) * c1345 * tmp1
 		+ dt * 2.0 * ( tx1 * dx5 +  ty1 * dy5 +  tz1 * dz5 );
 
@@ -213,47 +222,47 @@ void ssor(int niter)
 	      tmp2_jacld = tmp1 * tmp1;
 	      tmp3 = tmp1 * tmp2_jacld;
 
-	      a[j][i][0][0] = - dt * tz1 * dz1;
-	      a[j][i][1][0] =   0.0;
-	      a[j][i][2][0] =   0.0;
-	      a[j][i][3][0] = - dt * tz2;
-	      a[j][i][4][0] =   0.0;
+	      a[k][j][i][0][0] = - dt * tz1 * dz1;
+	      a[k][j][i][1][0] =   0.0;
+	      a[k][j][i][2][0] =   0.0;
+	      a[k][j][i][3][0] = - dt * tz2;
+	      a[k][j][i][4][0] =   0.0;
 
-	      a[j][i][0][1] = - dt * tz2
+	      a[k][j][i][0][1] = - dt * tz2
 		* ( - ( u[k-1][j][i][1]*u[k-1][j][i][3] ) * tmp2_jacld )
 		- dt * tz1 * ( - c34 * tmp2_jacld * u[k-1][j][i][1] );
-	      a[j][i][1][1] = - dt * tz2 * ( u[k-1][j][i][3] * tmp1 )
+	      a[k][j][i][1][1] = - dt * tz2 * ( u[k-1][j][i][3] * tmp1 )
 		- dt * tz1 * c34 * tmp1
 		- dt * tz1 * dz2;
-	      a[j][i][2][1] = 0.0;
-	      a[j][i][3][1] = - dt * tz2 * ( u[k-1][j][i][1] * tmp1 );
-	      a[j][i][4][1] = 0.0;
+	      a[k][j][i][2][1] = 0.0;
+	      a[k][j][i][3][1] = - dt * tz2 * ( u[k-1][j][i][1] * tmp1 );
+	      a[k][j][i][4][1] = 0.0;
 
-	      a[j][i][0][2] = - dt * tz2
+	      a[k][j][i][0][2] = - dt * tz2
 		* ( - ( u[k-1][j][i][2]*u[k-1][j][i][3] ) * tmp2_jacld )
 		- dt * tz1 * ( - c34 * tmp2_jacld * u[k-1][j][i][2] );
-	      a[j][i][1][2] = 0.0;
-	      a[j][i][2][2] = - dt * tz2 * ( u[k-1][j][i][3] * tmp1 )
+	      a[k][j][i][1][2] = 0.0;
+	      a[k][j][i][2][2] = - dt * tz2 * ( u[k-1][j][i][3] * tmp1 )
 		- dt * tz1 * ( c34 * tmp1 )
 		- dt * tz1 * dz3;
-	      a[j][i][3][2] = - dt * tz2 * ( u[k-1][j][i][2] * tmp1 );
-	      a[j][i][4][2] = 0.0;
+	      a[k][j][i][3][2] = - dt * tz2 * ( u[k-1][j][i][2] * tmp1 );
+	      a[k][j][i][4][2] = 0.0;
 
-	      a[j][i][0][3] = - dt * tz2
+	      a[k][j][i][0][3] = - dt * tz2
 		* ( - ( u[k-1][j][i][3] * tmp1 ) * ( u[k-1][j][i][3] * tmp1 )
 		    + C2 * qs[k-1][j][i] * tmp1 )
 		- dt * tz1 * ( - r43 * c34 * tmp2_jacld * u[k-1][j][i][3] );
-	      a[j][i][1][3] = - dt * tz2
+	      a[k][j][i][1][3] = - dt * tz2
 		* ( - C2 * ( u[k-1][j][i][1] * tmp1 ) );
-	      a[j][i][2][3] = - dt * tz2
+	      a[k][j][i][2][3] = - dt * tz2
 		* ( - C2 * ( u[k-1][j][i][2] * tmp1 ) );
-	      a[j][i][3][3] = - dt * tz2 * ( 2.0 - C2 )
+	      a[k][j][i][3][3] = - dt * tz2 * ( 2.0 - C2 )
 		* ( u[k-1][j][i][3] * tmp1 )
 		- dt * tz1 * ( r43 * c34 * tmp1 )
 		- dt * tz1 * dz4;
-	      a[j][i][4][3] = - dt * tz2 * C2;
+	      a[k][j][i][4][3] = - dt * tz2 * C2;
 
-	      a[j][i][0][4] = - dt * tz2
+	      a[k][j][i][0][4] = - dt * tz2
 		* ( ( C2 * 2.0 * qs[k-1][j][i] - C1 * u[k-1][j][i][4] )
 		    * u[k-1][j][i][3] * tmp2_jacld )
 		- dt * tz1
@@ -261,18 +270,18 @@ void ssor(int niter)
 		    - ( c34 - c1345 ) * tmp3 * (u[k-1][j][i][2]*u[k-1][j][i][2])
 		    - ( r43*c34 - c1345 )* tmp3 * (u[k-1][j][i][3]*u[k-1][j][i][3])
 		    - c1345 * tmp2_jacld * u[k-1][j][i][4] );
-	      a[j][i][1][4] = - dt * tz2
+	      a[k][j][i][1][4] = - dt * tz2
 		* ( - C2 * ( u[k-1][j][i][1]*u[k-1][j][i][3] ) * tmp2_jacld )
 		- dt * tz1 * ( c34 - c1345 ) * tmp2_jacld * u[k-1][j][i][1];
-	      a[j][i][2][4] = - dt * tz2
+	      a[k][j][i][2][4] = - dt * tz2
 		* ( - C2 * ( u[k-1][j][i][2]*u[k-1][j][i][3] ) * tmp2_jacld )
 		- dt * tz1 * ( c34 - c1345 ) * tmp2_jacld * u[k-1][j][i][2];
-	      a[j][i][3][4] = - dt * tz2
+	      a[k][j][i][3][4] = - dt * tz2
 		* ( C1 * ( u[k-1][j][i][4] * tmp1 )
 		  - C2 * ( qs[k-1][j][i] * tmp1
 		         + u[k-1][j][i][3]*u[k-1][j][i][3] * tmp2_jacld ) )
 		- dt * tz1 * ( r43*c34 - c1345 ) * tmp2_jacld * u[k-1][j][i][3];
-	      a[j][i][4][4] = - dt * tz2
+	      a[k][j][i][4][4] = - dt * tz2
 		* ( C1 * ( u[k-1][j][i][3] * tmp1 ) )
 		- dt * tz1 * c1345 * tmp1
 		- dt * tz1 * dz5;
@@ -284,45 +293,45 @@ void ssor(int niter)
 	      tmp2_jacld = tmp1 * tmp1;
 	      tmp3 = tmp1 * tmp2_jacld;
 
-	      b[j][i][0][0] = - dt * ty1 * dy1;
-	      b[j][i][1][0] =   0.0;
-	      b[j][i][2][0] = - dt * ty2;
-	      b[j][i][3][0] =   0.0;
-	      b[j][i][4][0] =   0.0;
+	      b[k][j][i][0][0] = - dt * ty1 * dy1;
+	      b[k][j][i][1][0] =   0.0;
+	      b[k][j][i][2][0] = - dt * ty2;
+	      b[k][j][i][3][0] =   0.0;
+	      b[k][j][i][4][0] =   0.0;
 
-	      b[j][i][0][1] = - dt * ty2
+	      b[k][j][i][0][1] = - dt * ty2
 		* ( - ( u[k][j-1][i][1]*u[k][j-1][i][2] ) * tmp2_jacld )
 		- dt * ty1 * ( - c34 * tmp2_jacld * u[k][j-1][i][1] );
-	      b[j][i][1][1] = - dt * ty2 * ( u[k][j-1][i][2] * tmp1 )
+	      b[k][j][i][1][1] = - dt * ty2 * ( u[k][j-1][i][2] * tmp1 )
 		- dt * ty1 * ( c34 * tmp1 )
 		- dt * ty1 * dy2;
-	      b[j][i][2][1] = - dt * ty2 * ( u[k][j-1][i][1] * tmp1 );
-	      b[j][i][3][1] = 0.0;
-	      b[j][i][4][1] = 0.0;
+	      b[k][j][i][2][1] = - dt * ty2 * ( u[k][j-1][i][1] * tmp1 );
+	      b[k][j][i][3][1] = 0.0;
+	      b[k][j][i][4][1] = 0.0;
 
-	      b[j][i][0][2] = - dt * ty2
+	      b[k][j][i][0][2] = - dt * ty2
 		* ( - ( u[k][j-1][i][2] * tmp1 ) * ( u[k][j-1][i][2] * tmp1 )
 		    + C2 * ( qs[k][j-1][i] * tmp1 ) )
 		- dt * ty1 * ( - r43 * c34 * tmp2_jacld * u[k][j-1][i][2] );
-	      b[j][i][1][2] = - dt * ty2
+	      b[k][j][i][1][2] = - dt * ty2
 		* ( - C2 * ( u[k][j-1][i][1] * tmp1 ) );
-	      b[j][i][2][2] = - dt * ty2 * ( (2.0 - C2) * (u[k][j-1][i][2] * tmp1) )
+	      b[k][j][i][2][2] = - dt * ty2 * ( (2.0 - C2) * (u[k][j-1][i][2] * tmp1) )
 		- dt * ty1 * ( r43 * c34 * tmp1 )
 		- dt * ty1 * dy3;
-	      b[j][i][3][2] = - dt * ty2 * ( - C2 * ( u[k][j-1][i][3] * tmp1 ) );
-	      b[j][i][4][2] = - dt * ty2 * C2;
+	      b[k][j][i][3][2] = - dt * ty2 * ( - C2 * ( u[k][j-1][i][3] * tmp1 ) );
+	      b[k][j][i][4][2] = - dt * ty2 * C2;
 
-	      b[j][i][0][3] = - dt * ty2
+	      b[k][j][i][0][3] = - dt * ty2
 		* ( - ( u[k][j-1][i][2]*u[k][j-1][i][3] ) * tmp2_jacld )
 		- dt * ty1 * ( - c34 * tmp2_jacld * u[k][j-1][i][3] );
-	      b[j][i][1][3] = 0.0;
-	      b[j][i][2][3] = - dt * ty2 * ( u[k][j-1][i][3] * tmp1 );
-	      b[j][i][3][3] = - dt * ty2 * ( u[k][j-1][i][2] * tmp1 )
+	      b[k][j][i][1][3] = 0.0;
+	      b[k][j][i][2][3] = - dt * ty2 * ( u[k][j-1][i][3] * tmp1 );
+	      b[k][j][i][3][3] = - dt * ty2 * ( u[k][j-1][i][2] * tmp1 )
 		- dt * ty1 * ( c34 * tmp1 )
 		- dt * ty1 * dy4;
-	      b[j][i][4][3] = 0.0;
+	      b[k][j][i][4][3] = 0.0;
 
-	      b[j][i][0][4] = - dt * ty2
+	      b[k][j][i][0][4] = - dt * ty2
 		* ( ( C2 * 2.0 * qs[k][j-1][i] - C1 * u[k][j-1][i][4] )
 		    * ( u[k][j-1][i][2] * tmp2_jacld ) )
 		- dt * ty1
@@ -330,18 +339,18 @@ void ssor(int niter)
 		    - ( r43*c34 - c1345 )*tmp3*(u[k][j-1][i][2]*u[k][j-1][i][2])
 		    - (     c34 - c1345 )*tmp3*(u[k][j-1][i][3]*u[k][j-1][i][3])
 		    - c1345*tmp2_jacld*u[k][j-1][i][4] );
-	      b[j][i][1][4] = - dt * ty2
+	      b[k][j][i][1][4] = - dt * ty2
 		* ( - C2 * ( u[k][j-1][i][1]*u[k][j-1][i][2] ) * tmp2_jacld )
 		- dt * ty1 * ( c34 - c1345 ) * tmp2_jacld * u[k][j-1][i][1];
-	      b[j][i][2][4] = - dt * ty2
+	      b[k][j][i][2][4] = - dt * ty2
 		* ( C1 * ( u[k][j-1][i][4] * tmp1 )
 		  - C2 * ( qs[k][j-1][i] * tmp1
 		         + u[k][j-1][i][2]*u[k][j-1][i][2] * tmp2_jacld ) )
 		- dt * ty1 * ( r43*c34 - c1345 ) * tmp2_jacld * u[k][j-1][i][2];
-	      b[j][i][3][4] = - dt * ty2
+	      b[k][j][i][3][4] = - dt * ty2
 		* ( - C2 * ( u[k][j-1][i][2]*u[k][j-1][i][3] ) * tmp2_jacld )
 		- dt * ty1 * ( c34 - c1345 ) * tmp2_jacld * u[k][j-1][i][3];
-	      b[j][i][4][4] = - dt * ty2
+	      b[k][j][i][4][4] = - dt * ty2
 		* ( C1 * ( u[k][j-1][i][2] * tmp1 ) )
 		- dt * ty1 * c1345 * tmp1
 		- dt * ty1 * dy5;
@@ -353,46 +362,46 @@ void ssor(int niter)
 	      tmp2_jacld = tmp1 * tmp1;
 	      tmp3 = tmp1 * tmp2_jacld;
 
-	      c[j][i][0][0] = - dt * tx1 * dx1;
-	      c[j][i][1][0] = - dt * tx2;
-	      c[j][i][2][0] =   0.0;
-	      c[j][i][3][0] =   0.0;
-	      c[j][i][4][0] =   0.0;
+	      c[k][j][i][0][0] = - dt * tx1 * dx1;
+	      c[k][j][i][1][0] = - dt * tx2;
+	      c[k][j][i][2][0] =   0.0;
+	      c[k][j][i][3][0] =   0.0;
+	      c[k][j][i][4][0] =   0.0;
 
-	      c[j][i][0][1] = - dt * tx2
+	      c[k][j][i][0][1] = - dt * tx2
 		* ( - ( u[k][j][i-1][1] * tmp1 ) * ( u[k][j][i-1][1] * tmp1 )
 		    + C2 * qs[k][j][i-1] * tmp1 )
 		- dt * tx1 * ( - r43 * c34 * tmp2_jacld * u[k][j][i-1][1] );
-	      c[j][i][1][1] = - dt * tx2
+	      c[k][j][i][1][1] = - dt * tx2
 		* ( ( 2.0 - C2 ) * ( u[k][j][i-1][1] * tmp1 ) )
 		- dt * tx1 * ( r43 * c34 * tmp1 )
 		- dt * tx1 * dx2;
-	      c[j][i][2][1] = - dt * tx2
+	      c[k][j][i][2][1] = - dt * tx2
 		* ( - C2 * ( u[k][j][i-1][2] * tmp1 ) );
-	      c[j][i][3][1] = - dt * tx2
+	      c[k][j][i][3][1] = - dt * tx2
 		* ( - C2 * ( u[k][j][i-1][3] * tmp1 ) );
-	      c[j][i][4][1] = - dt * tx2 * C2;
+	      c[k][j][i][4][1] = - dt * tx2 * C2;
 
-	      c[j][i][0][2] = - dt * tx2
+	      c[k][j][i][0][2] = - dt * tx2
 		* ( - ( u[k][j][i-1][1] * u[k][j][i-1][2] ) * tmp2_jacld )
 		- dt * tx1 * ( - c34 * tmp2_jacld * u[k][j][i-1][2] );
-	      c[j][i][1][2] = - dt * tx2 * ( u[k][j][i-1][2] * tmp1 );
-	      c[j][i][2][2] = - dt * tx2 * ( u[k][j][i-1][1] * tmp1 )
+	      c[k][j][i][1][2] = - dt * tx2 * ( u[k][j][i-1][2] * tmp1 );
+	      c[k][j][i][2][2] = - dt * tx2 * ( u[k][j][i-1][1] * tmp1 )
 		- dt * tx1 * ( c34 * tmp1 )
 		- dt * tx1 * dx3;
-	      c[j][i][3][2] = 0.0;
-	      c[j][i][4][2] = 0.0;
+	      c[k][j][i][3][2] = 0.0;
+	      c[k][j][i][4][2] = 0.0;
 
-	      c[j][i][0][3] = - dt * tx2
+	      c[k][j][i][0][3] = - dt * tx2
 		* ( - ( u[k][j][i-1][1]*u[k][j][i-1][3] ) * tmp2_jacld )
 		- dt * tx1 * ( - c34 * tmp2_jacld * u[k][j][i-1][3] );
-	      c[j][i][1][3] = - dt * tx2 * ( u[k][j][i-1][3] * tmp1 );
-	      c[j][i][2][3] = 0.0;
-	      c[j][i][3][3] = - dt * tx2 * ( u[k][j][i-1][1] * tmp1 )
+	      c[k][j][i][1][3] = - dt * tx2 * ( u[k][j][i-1][3] * tmp1 );
+	      c[k][j][i][2][3] = 0.0;
+	      c[k][j][i][3][3] = - dt * tx2 * ( u[k][j][i-1][1] * tmp1 )
 		- dt * tx1 * ( c34 * tmp1 ) - dt * tx1 * dx4;
-	      c[j][i][4][3] = 0.0;
+	      c[k][j][i][4][3] = 0.0;
 
-	      c[j][i][0][4] = - dt * tx2
+	      c[k][j][i][0][4] = - dt * tx2
 		* ( ( C2 * 2.0 * qs[k][j][i-1] - C1 * u[k][j][i-1][4] )
 		    * u[k][j][i-1][1] * tmp2_jacld )
 		- dt * tx1
@@ -400,18 +409,18 @@ void ssor(int niter)
 		    - (     c34 - c1345 ) * tmp3 * ( u[k][j][i-1][2]*u[k][j][i-1][2] )
 		    - (     c34 - c1345 ) * tmp3 * ( u[k][j][i-1][3]*u[k][j][i-1][3] )
 		    - c1345 * tmp2_jacld * u[k][j][i-1][4] );
-	      c[j][i][1][4] = - dt * tx2
+	      c[k][j][i][1][4] = - dt * tx2
 		* ( C1 * ( u[k][j][i-1][4] * tmp1 )
 		  - C2 * ( u[k][j][i-1][1]*u[k][j][i-1][1] * tmp2_jacld
 		         + qs[k][j][i-1] * tmp1 ) )
 		- dt * tx1 * ( r43*c34 - c1345 ) * tmp2_jacld * u[k][j][i-1][1];
-	      c[j][i][2][4] = - dt * tx2
+	      c[k][j][i][2][4] = - dt * tx2
 		* ( - C2 * ( u[k][j][i-1][2]*u[k][j][i-1][1] ) * tmp2_jacld )
 		- dt * tx1 * (  c34 - c1345 ) * tmp2_jacld * u[k][j][i-1][2];
-	      c[j][i][3][4] = - dt * tx2
+	      c[k][j][i][3][4] = - dt * tx2
 		* ( - C2 * ( u[k][j][i-1][3]*u[k][j][i-1][1] ) * tmp2_jacld )
 		- dt * tx1 * (  c34 - c1345 ) * tmp2_jacld * u[k][j][i-1][3];
-	      c[j][i][4][4] = - dt * tx2
+	      c[k][j][i][4][4] = - dt * tx2
 		* ( C1 * ( u[k][j][i-1][1] * tmp1 ) )
 		- dt * tx1 * c1345 * tmp1
 		- dt * tx1 * dx5;
@@ -419,129 +428,132 @@ void ssor(int niter)
 		// start blts
 		for (m = 0; m < 5; m++) {
 		rsd[k][j][i][m] =  rsd[k][j][i][m]
-		  - omega * (  a[j][i][0][m] * rsd[k-1][j][i][0]
-		             + a[j][i][1][m] * rsd[k-1][j][i][1]
-		             + a[j][i][2][m] * rsd[k-1][j][i][2]
-		             + a[j][i][3][m] * rsd[k-1][j][i][3]
-		             + a[j][i][4][m] * rsd[k-1][j][i][4] );
+		  - omega * (  a[k][j][i][0][m] * rsd[k-1][j][i][0]
+		             + a[k][j][i][1][m] * rsd[k-1][j][i][1]
+		             + a[k][j][i][2][m] * rsd[k-1][j][i][2]
+		             + a[k][j][i][3][m] * rsd[k-1][j][i][3]
+		             + a[k][j][i][4][m] * rsd[k-1][j][i][4] );
 	      }
+	      //if ((k == 1) && (j == 1) && (i == 1))
+	           //printf("AAA %f %f %f\n", rsd[1][1][1][3], rsd[1][1][0][0], rsd[1][0][1][4]);
 	      for (m = 0; m < 5; m++) {
-		tv_blts[j][m] =  rsd[k][j][i][m]
-		  - omega * ( b[j][i][0][m] * rsd[k][j-1][i][0]
-		            + c[j][i][0][m] * rsd[k][j][i-1][0]
-		            + b[j][i][1][m] * rsd[k][j-1][i][1]
-		            + c[j][i][1][m] * rsd[k][j][i-1][1]
-		            + b[j][i][2][m] * rsd[k][j-1][i][2]
-		            + c[j][i][2][m] * rsd[k][j][i-1][2]
-		            + b[j][i][3][m] * rsd[k][j-1][i][3]
-		            + c[j][i][3][m] * rsd[k][j][i-1][3]
-		            + b[j][i][4][m] * rsd[k][j-1][i][4]
-		            + c[j][i][4][m] * rsd[k][j][i-1][4] );
+		tv_blts[k][j][m] =  rsd[k][j][i][m]
+		  - omega * ( b[k][j][i][0][m] * rsd[k][j-1][i][0]
+		            + c[k][j][i][0][m] * rsd[k][j][i-1][0]
+		            + b[k][j][i][1][m] * rsd[k][j-1][i][1]
+		            + c[k][j][i][1][m] * rsd[k][j][i-1][1]
+		            + b[k][j][i][2][m] * rsd[k][j-1][i][2]
+		            + c[k][j][i][2][m] * rsd[k][j][i-1][2]
+		            + b[k][j][i][3][m] * rsd[k][j-1][i][3]
+		            + c[k][j][i][3][m] * rsd[k][j][i-1][3]
+		            + b[k][j][i][4][m] * rsd[k][j-1][i][4]
+		            + c[k][j][i][4][m] * rsd[k][j][i-1][4] );
 	      }
-
 	      //---------------------------------------------------------------------
 	      // diagonal block inversion
 	      // 
 	      // forward elimination
 	      //---------------------------------------------------------------------
 	      for (m = 0; m < 5; m++) {
-		tmat_blts[j][m][0] = d[j][i][0][m];
-		tmat_blts[j][m][1] = d[j][i][1][m];
-		tmat_blts[j][m][2] = d[j][i][2][m];
-		tmat_blts[j][m][3] = d[j][i][3][m];
-		tmat_blts[j][m][4] = d[j][i][4][m];
+		tmat_blts[k][j][m][0] = d[k][j][i][0][m];
+		tmat_blts[k][j][m][1] = d[k][j][i][1][m];
+		tmat_blts[k][j][m][2] = d[k][j][i][2][m];
+		tmat_blts[k][j][m][3] = d[k][j][i][3][m];
+		tmat_blts[k][j][m][4] = d[k][j][i][4][m];
 	      }
 
-	      tmp1_blts = 1.0 / tmat_blts[j][0][0];
-	      tmp_blts = tmp1_blts * tmat_blts[j][1][0];
-	      tmat_blts[j][1][1] =  tmat_blts[j][1][1] - tmp_blts * tmat_blts[j][0][1];
-	      tmat_blts[j][1][2] =  tmat_blts[j][1][2] - tmp_blts * tmat_blts[j][0][2];
-	      tmat_blts[j][1][3] =  tmat_blts[j][1][3] - tmp_blts * tmat_blts[j][0][3];
-	      tmat_blts[j][1][4] =  tmat_blts[j][1][4] - tmp_blts * tmat_blts[j][0][4];
-	      tv_blts[j][1] = tv_blts[j][1] - tv_blts[j][0] * tmp_blts;
+	      tmp1_blts = 1.0 / tmat_blts[k][j][0][0];
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][1][0];
+	      tmat_blts[k][j][1][1] =  tmat_blts[k][j][1][1] - tmp_blts * tmat_blts[k][j][0][1];
+	      tmat_blts[k][j][1][2] =  tmat_blts[k][j][1][2] - tmp_blts * tmat_blts[k][j][0][2];
+	      tmat_blts[k][j][1][3] =  tmat_blts[k][j][1][3] - tmp_blts * tmat_blts[k][j][0][3];
+	      tmat_blts[k][j][1][4] =  tmat_blts[k][j][1][4] - tmp_blts * tmat_blts[k][j][0][4];
+	      tv_blts[k][j][1] = tv_blts[k][j][1] - tv_blts[k][j][0] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[j][2][0];
-	      tmat_blts[j][2][1] =  tmat_blts[j][2][1] - tmp_blts * tmat_blts[j][0][1];
-	      tmat_blts[j][2][2] =  tmat_blts[j][2][2] - tmp_blts * tmat_blts[j][0][2];
-	      tmat_blts[j][2][3] =  tmat_blts[j][2][3] - tmp_blts * tmat_blts[j][0][3];
-	      tmat_blts[j][2][4] =  tmat_blts[j][2][4] - tmp_blts * tmat_blts[j][0][4];
-	      tv_blts[j][2] = tv_blts[j][2] - tv_blts[j][0] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][2][0];
+	      tmat_blts[k][j][2][1] =  tmat_blts[k][j][2][1] - tmp_blts * tmat_blts[k][j][0][1];
+	      tmat_blts[k][j][2][2] =  tmat_blts[k][j][2][2] - tmp_blts * tmat_blts[k][j][0][2];
+	      tmat_blts[k][j][2][3] =  tmat_blts[k][j][2][3] - tmp_blts * tmat_blts[k][j][0][3];
+	      tmat_blts[k][j][2][4] =  tmat_blts[k][j][2][4] - tmp_blts * tmat_blts[k][j][0][4];
+	      tv_blts[k][j][2] = tv_blts[k][j][2] - tv_blts[k][j][0] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[j][3][0];
-	      tmat_blts[j][3][1] =  tmat_blts[j][3][1] - tmp_blts * tmat_blts[j][0][1];
-	      tmat_blts[j][3][2] =  tmat_blts[j][3][2] - tmp_blts * tmat_blts[j][0][2];
-	      tmat_blts[j][3][3] =  tmat_blts[j][3][3] - tmp_blts * tmat_blts[j][0][3];
-	      tmat_blts[j][3][4] =  tmat_blts[j][3][4] - tmp_blts * tmat_blts[j][0][4];
-	      tv_blts[j][3] = tv_blts[j][3] - tv_blts[j][0] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][3][0];
+	      tmat_blts[k][j][3][1] =  tmat_blts[k][j][3][1] - tmp_blts * tmat_blts[k][j][0][1];
+	      tmat_blts[k][j][3][2] =  tmat_blts[k][j][3][2] - tmp_blts * tmat_blts[k][j][0][2];
+	      tmat_blts[k][j][3][3] =  tmat_blts[k][j][3][3] - tmp_blts * tmat_blts[k][j][0][3];
+	      tmat_blts[k][j][3][4] =  tmat_blts[k][j][3][4] - tmp_blts * tmat_blts[k][j][0][4];
+	      tv_blts[k][j][3] = tv_blts[k][j][3] - tv_blts[k][j][0] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[j][4][0];
-	      tmat_blts[j][4][1] =  tmat_blts[j][4][1] - tmp_blts * tmat_blts[j][0][1];
-	      tmat_blts[j][4][2] =  tmat_blts[j][4][2] - tmp_blts * tmat_blts[j][0][2];
-	      tmat_blts[j][4][3] =  tmat_blts[j][4][3] - tmp_blts * tmat_blts[j][0][3];
-	      tmat_blts[j][4][4] =  tmat_blts[j][4][4] - tmp_blts * tmat_blts[j][0][4];
-	      tv_blts[j][4] = tv_blts[j][4] - tv_blts[j][0] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][4][0];
+	      tmat_blts[k][j][4][1] =  tmat_blts[k][j][4][1] - tmp_blts * tmat_blts[k][j][0][1];
+	      tmat_blts[k][j][4][2] =  tmat_blts[k][j][4][2] - tmp_blts * tmat_blts[k][j][0][2];
+	      tmat_blts[k][j][4][3] =  tmat_blts[k][j][4][3] - tmp_blts * tmat_blts[k][j][0][3];
+	      tmat_blts[k][j][4][4] =  tmat_blts[k][j][4][4] - tmp_blts * tmat_blts[k][j][0][4];
+	      tv_blts[k][j][4] = tv_blts[k][j][4] - tv_blts[k][j][0] * tmp_blts;
 
-	      tmp1_blts = 1.0 / tmat_blts[j][1][1];
-	      tmp_blts = tmp1_blts * tmat_blts[j][2][1];
-	      tmat_blts[j][2][2] =  tmat_blts[j][2][2] - tmp_blts * tmat_blts[j][1][2];
-	      tmat_blts[j][2][3] =  tmat_blts[j][2][3] - tmp_blts * tmat_blts[j][1][3];
-	      tmat_blts[j][2][4] =  tmat_blts[j][2][4] - tmp_blts * tmat_blts[j][1][4];
-	      tv_blts[j][2] = tv_blts[j][2] - tv_blts[j][1] * tmp_blts;
+	      tmp1_blts = 1.0 / tmat_blts[k][j][1][1];
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][2][1];
+	      tmat_blts[k][j][2][2] =  tmat_blts[k][j][2][2] - tmp_blts * tmat_blts[k][j][1][2];
+	      tmat_blts[k][j][2][3] =  tmat_blts[k][j][2][3] - tmp_blts * tmat_blts[k][j][1][3];
+	      tmat_blts[k][j][2][4] =  tmat_blts[k][j][2][4] - tmp_blts * tmat_blts[k][j][1][4];
+	      tv_blts[k][j][2] = tv_blts[k][j][2] - tv_blts[k][j][1] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[j][3][1];
-	      tmat_blts[j][3][2] =  tmat_blts[j][3][2] - tmp_blts * tmat_blts[j][1][2];
-	      tmat_blts[j][3][3] =  tmat_blts[j][3][3] - tmp_blts * tmat_blts[j][1][3];
-	      tmat_blts[j][3][4] =  tmat_blts[j][3][4] - tmp_blts * tmat_blts[j][1][4];
-	      tv_blts[j][3] = tv_blts[j][3] - tv_blts[j][1] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][3][1];
+	      tmat_blts[k][j][3][2] =  tmat_blts[k][j][3][2] - tmp_blts * tmat_blts[k][j][1][2];
+	      tmat_blts[k][j][3][3] =  tmat_blts[k][j][3][3] - tmp_blts * tmat_blts[k][j][1][3];
+	      tmat_blts[k][j][3][4] =  tmat_blts[k][j][3][4] - tmp_blts * tmat_blts[k][j][1][4];
+	      tv_blts[k][j][3] = tv_blts[k][j][3] - tv_blts[k][j][1] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[j][4][1];
-	      tmat_blts[j][4][2] =  tmat_blts[j][4][2] - tmp_blts * tmat_blts[j][1][2];
-	      tmat_blts[j][4][3] =  tmat_blts[j][4][3] - tmp_blts * tmat_blts[j][1][3];
-	      tmat_blts[j][4][4] =  tmat_blts[j][4][4] - tmp_blts * tmat_blts[j][1][4];
-	      tv_blts[j][4] = tv_blts[j][4] - tv_blts[j][1] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][4][1];
+	      tmat_blts[k][j][4][2] =  tmat_blts[k][j][4][2] - tmp_blts * tmat_blts[k][j][1][2];
+	      tmat_blts[k][j][4][3] =  tmat_blts[k][j][4][3] - tmp_blts * tmat_blts[k][j][1][3];
+	      tmat_blts[k][j][4][4] =  tmat_blts[k][j][4][4] - tmp_blts * tmat_blts[k][j][1][4];
+	      tv_blts[k][j][4] = tv_blts[k][j][4] - tv_blts[k][j][1] * tmp_blts;
 
-	      tmp1_blts = 1.0 / tmat_blts[j][2][2];
-	      tmp_blts = tmp1_blts * tmat_blts[j][3][2];
-	      tmat_blts[j][3][3] =  tmat_blts[j][3][3] - tmp_blts * tmat_blts[j][2][3];
-	      tmat_blts[j][3][4] =  tmat_blts[j][3][4] - tmp_blts * tmat_blts[j][2][4];
-	      tv_blts[j][3] = tv_blts[j][3] - tv_blts[j][2] * tmp_blts;
+	      tmp1_blts = 1.0 / tmat_blts[k][j][2][2];
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][3][2];
+	      tmat_blts[k][j][3][3] =  tmat_blts[k][j][3][3] - tmp_blts * tmat_blts[k][j][2][3];
+	      tmat_blts[k][j][3][4] =  tmat_blts[k][j][3][4] - tmp_blts * tmat_blts[k][j][2][4];
+	      tv_blts[k][j][3] = tv_blts[k][j][3] - tv_blts[k][j][2] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[j][4][2];
-	      tmat_blts[j][4][3] =  tmat_blts[j][4][3] - tmp_blts * tmat_blts[j][2][3];
-	      tmat_blts[j][4][4] =  tmat_blts[j][4][4] - tmp_blts * tmat_blts[j][2][4];
-	      tv_blts[j][4] = tv_blts[j][4] - tv_blts[j][2] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][4][2];
+	      tmat_blts[k][j][4][3] =  tmat_blts[k][j][4][3] - tmp_blts * tmat_blts[k][j][2][3];
+	      tmat_blts[k][j][4][4] =  tmat_blts[k][j][4][4] - tmp_blts * tmat_blts[k][j][2][4];
+	      tv_blts[k][j][4] = tv_blts[k][j][4] - tv_blts[k][j][2] * tmp_blts;
 
-	      tmp1_blts = 1.0 / tmat_blts[j][3][3];
-	      tmp_blts = tmp1_blts * tmat_blts[j][4][3];
-	      tmat_blts[j][4][4] =  tmat_blts[j][4][4] - tmp_blts * tmat_blts[j][3][4];
-	      tv_blts[j][4] = tv_blts[j][4] - tv_blts[j][3] * tmp_blts;
+	      tmp1_blts = 1.0 / tmat_blts[k][j][3][3];
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][4][3];
+	      tmat_blts[k][j][4][4] =  tmat_blts[k][j][4][4] - tmp_blts * tmat_blts[k][j][3][4];
+	      tv_blts[k][j][4] = tv_blts[k][j][4] - tv_blts[k][j][3] * tmp_blts;
 
 	      //---------------------------------------------------------------------
 	      // back substitution
 	      //---------------------------------------------------------------------
-	      rsd[k][j][i][4] = tv_blts[j][4] / tmat_blts[j][4][4];
+	      rsd[k][j][i][4] = tv_blts[k][j][4] / tmat_blts[k][j][4][4];
 
-	      tv_blts[j][3] = tv_blts[j][3] 
-		- tmat_blts[j][3][4] * rsd[k][j][i][4];
-	      rsd[k][j][i][3] = tv_blts[j][3] / tmat_blts[j][3][3];
+	      tv_blts[k][j][3] = tv_blts[k][j][3] 
+		- tmat_blts[k][j][3][4] * rsd[k][j][i][4];
+	      rsd[k][j][i][3] = tv_blts[k][j][3] / tmat_blts[k][j][3][3];
 
-	      tv_blts[j][2] = tv_blts[j][2]
-		- tmat_blts[j][2][3] * rsd[k][j][i][3]
-		- tmat_blts[j][2][4] * rsd[k][j][i][4];
-	      rsd[k][j][i][2] = tv_blts[j][2] / tmat_blts[j][2][2];
+	      tv_blts[k][j][2] = tv_blts[k][j][2]
+		- tmat_blts[k][j][2][3] * rsd[k][j][i][3]
+		- tmat_blts[k][j][2][4] * rsd[k][j][i][4];
+	      rsd[k][j][i][2] = tv_blts[k][j][2] / tmat_blts[k][j][2][2];
 
-	      tv_blts[j][1] = tv_blts[j][1]
-		- tmat_blts[j][1][2] * rsd[k][j][i][2]
-		- tmat_blts[j][1][3] * rsd[k][j][i][3]
-		- tmat_blts[j][1][4] * rsd[k][j][i][4];
-	      rsd[k][j][i][1] = tv_blts[j][1] / tmat_blts[j][1][1];
+	      tv_blts[k][j][1] = tv_blts[k][j][1]
+		- tmat_blts[k][j][1][2] * rsd[k][j][i][2]
+		- tmat_blts[k][j][1][3] * rsd[k][j][i][3]
+		- tmat_blts[k][j][1][4] * rsd[k][j][i][4];
+	      rsd[k][j][i][1] = tv_blts[k][j][1] / tmat_blts[k][j][1][1];
 
-	      tv_blts[j][0] = tv_blts[j][0]
-		- tmat_blts[j][0][1] * rsd[k][j][i][1]
-		- tmat_blts[j][0][2] * rsd[k][j][i][2]
-		- tmat_blts[j][0][3] * rsd[k][j][i][3]
-		- tmat_blts[j][0][4] * rsd[k][j][i][4];
-	      rsd[k][j][i][0] = tv_blts[j][0] / tmat_blts[j][0][0];
+	      tv_blts[k][j][0] = tv_blts[k][j][0]
+		- tmat_blts[k][j][0][1] * rsd[k][j][i][1]
+		- tmat_blts[k][j][0][2] * rsd[k][j][i][2]
+		- tmat_blts[k][j][0][3] * rsd[k][j][i][3]
+		- tmat_blts[k][j][0][4] * rsd[k][j][i][4];
+	      rsd[k][j][i][0] = tv_blts[k][j][0] / tmat_blts[k][j][0][0];
+	      //if ((k == 1) && (j == 1) && (i == 1))
+	           //printf("BBB %f %f %f\n", rsd[1][1][1][3], rsd[1][1][0][0], rsd[1][0][1][4]);
 	      //end blts
 	    } // end i
 	  } // end j
@@ -559,10 +571,14 @@ void ssor(int niter)
 	  //#pragma omp for schedule(static) nowait
 	  //for (j = jend - 1; j >= jst; j--) {
 	    //for (i = iend - 1; i >= ist; i--) {
-	    //#pragma acc parallel loop private(k, j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts)
-	    for (k = min(62, pl - 2); k >= max(1, pl - ISIZ1 + 2 - ISIZ1 + 2); k--) {
+	    k_start = min(62, pl - 2);
+	    k_end = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2);
+	    #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts)
+	    for (k = k_start; k >= k_end; k--) {
 	      //#pragma acc loop
-	      for (j = min(62, pl - k - 1); j >= max(1, pl - k - ISIZ1 + 2); j--) {
+	      j_start = min(62, pl - k - 1);
+	      j_end = max(1, pl - k - ISIZ1 + 2);
+	      for (j = j_start; j >= j_end; j--) {
 	      i = pl - k - j;
 	      //---------------------------------------------------------------------t 
 	      // form the block daigonal
@@ -571,46 +587,46 @@ void ssor(int niter)
 	      tmp2_jacu = tmp1_jacu * tmp1_jacu;
 	      tmp3_jacu = tmp1_jacu * tmp2_jacu;
 
-	      du[j][i][0][0] = 1.0 + dt * 2.0 * ( tx1 * dx1 + ty1 * dy1 + tz1 * dz1 );
-	      du[j][i][1][0] = 0.0;
-	      du[j][i][2][0] = 0.0;
-	      du[j][i][3][0] = 0.0;
-	      du[j][i][4][0] = 0.0;
+	      du[k][j][i][0][0] = 1.0 + dt * 2.0 * ( tx1 * dx1 + ty1 * dy1 + tz1 * dz1 );
+	      du[k][j][i][1][0] = 0.0;
+	      du[k][j][i][2][0] = 0.0;
+	      du[k][j][i][3][0] = 0.0;
+	      du[k][j][i][4][0] = 0.0;
 
-	      du[j][i][0][1] =  dt * 2.0
+	      du[k][j][i][0][1] =  dt * 2.0
 		* ( - tx1 * r43 - ty1 - tz1 )
 		* ( c34 * tmp2_jacu * u[k][j][i][1] );
-	      du[j][i][1][1] =  1.0
+	      du[k][j][i][1][1] =  1.0
 		+ dt * 2.0 * c34 * tmp1_jacu 
 		* (  tx1 * r43 + ty1 + tz1 )
 		+ dt * 2.0 * ( tx1 * dx2 + ty1 * dy2 + tz1 * dz2 );
-	      du[j][i][2][1] = 0.0;
-	      du[j][i][3][1] = 0.0;
-	      du[j][i][4][1] = 0.0;
+	      du[k][j][i][2][1] = 0.0;
+	      du[k][j][i][3][1] = 0.0;
+	      du[k][j][i][4][1] = 0.0;
 
-	      du[j][i][0][2] = dt * 2.0
+	      du[k][j][i][0][2] = dt * 2.0
 		* ( - tx1 - ty1 * r43 - tz1 )
 		* ( c34 * tmp2_jacu * u[k][j][i][2] );
-	      du[j][i][1][2] = 0.0;
-	      du[j][i][2][2] = 1.0
+	      du[k][j][i][1][2] = 0.0;
+	      du[k][j][i][2][2] = 1.0
 		+ dt * 2.0 * c34 * tmp1_jacu
 		* (  tx1 + ty1 * r43 + tz1 )
 		+ dt * 2.0 * ( tx1 * dx3 + ty1 * dy3 + tz1 * dz3 );
-	      du[j][i][3][2] = 0.0;
-	      du[j][i][4][2] = 0.0;
+	      du[k][j][i][3][2] = 0.0;
+	      du[k][j][i][4][2] = 0.0;
 
-	      du[j][i][0][3] = dt * 2.0
+	      du[k][j][i][0][3] = dt * 2.0
 		* ( - tx1 - ty1 - tz1 * r43 )
 		* ( c34 * tmp2_jacu * u[k][j][i][3] );
-	      du[j][i][1][3] = 0.0;
-	      du[j][i][2][3] = 0.0;
-	      du[j][i][3][3] = 1.0
+	      du[k][j][i][1][3] = 0.0;
+	      du[k][j][i][2][3] = 0.0;
+	      du[k][j][i][3][3] = 1.0
 		+ dt * 2.0 * c34 * tmp1_jacu
 		* (  tx1 + ty1 + tz1 * r43 )
 		+ dt * 2.0 * ( tx1 * dx4 + ty1 * dy4 + tz1 * dz4 );
-	      du[j][i][4][3] = 0.0;
+	      du[k][j][i][4][3] = 0.0;
 
-	      du[j][i][0][4] = -dt * 2.0
+	      du[k][j][i][0][4] = -dt * 2.0
 		* ( ( ( tx1 * ( r43*c34 - c1345 )
 		        + ty1 * ( c34 - c1345 )
 		        + tz1 * ( c34 - c1345 ) ) * ( u[k][j][i][1]*u[k][j][i][1] )
@@ -623,19 +639,19 @@ void ssor(int niter)
 		    ) * tmp3_jacu
 		    + ( tx1 + ty1 + tz1 ) * c1345 * tmp2_jacu * u[k][j][i][4] );
 
-	      du[j][i][1][4] = dt * 2.0
+	      du[k][j][i][1][4] = dt * 2.0
 		* ( tx1 * ( r43*c34 - c1345 )
 		  + ty1 * (     c34 - c1345 )
 		  + tz1 * (     c34 - c1345 ) ) * tmp2_jacu * u[k][j][i][1];
-	      du[j][i][2][4] = dt * 2.0
+	      du[k][j][i][2][4] = dt * 2.0
 		* ( tx1 * ( c34 - c1345 )
 		  + ty1 * ( r43*c34 -c1345 )
 		  + tz1 * ( c34 - c1345 ) ) * tmp2_jacu * u[k][j][i][2];
-	      du[j][i][3][4] = dt * 2.0
+	      du[k][j][i][3][4] = dt * 2.0
 		* ( tx1 * ( c34 - c1345 )
 		  + ty1 * ( c34 - c1345 )
 		  + tz1 * ( r43*c34 - c1345 ) ) * tmp2_jacu * u[k][j][i][3];
-	      du[j][i][4][4] = 1.0
+	      du[k][j][i][4][4] = 1.0
 		+ dt * 2.0 * ( tx1 + ty1 + tz1 ) * c1345 * tmp1_jacu
 		+ dt * 2.0 * ( tx1 * dx5 + ty1 * dy5 + tz1 * dz5 );
 
@@ -646,47 +662,47 @@ void ssor(int niter)
 	      tmp2_jacu = tmp1_jacu * tmp1_jacu;
 	      tmp3_jacu = tmp1_jacu * tmp2_jacu;
 
-	      au[j][i][0][0] = - dt * tx1 * dx1;
-	      au[j][i][1][0] =   dt * tx2;
-	      au[j][i][2][0] =   0.0;
-	      au[j][i][3][0] =   0.0;
-	      au[j][i][4][0] =   0.0;
+	      au[k][j][i][0][0] = - dt * tx1 * dx1;
+	      au[k][j][i][1][0] =   dt * tx2;
+	      au[k][j][i][2][0] =   0.0;
+	      au[k][j][i][3][0] =   0.0;
+	      au[k][j][i][4][0] =   0.0;
 
-	      au[j][i][0][1] =  dt * tx2
+	      au[k][j][i][0][1] =  dt * tx2
 		* ( - ( u[k][j][i+1][1] * tmp1_jacu ) * ( u[k][j][i+1][1] * tmp1_jacu )
 		    + C2 * qs[k][j][i+1] * tmp1_jacu )
 		- dt * tx1 * ( - r43 * c34 * tmp2_jacu * u[k][j][i+1][1] );
-	      au[j][i][1][1] =  dt * tx2
+	      au[k][j][i][1][1] =  dt * tx2
 		* ( ( 2.0 - C2 ) * ( u[k][j][i+1][1] * tmp1_jacu ) )
 		- dt * tx1 * ( r43 * c34 * tmp1_jacu )
 		- dt * tx1 * dx2;
-	      au[j][i][2][1] =  dt * tx2
+	      au[k][j][i][2][1] =  dt * tx2
 		* ( - C2 * ( u[k][j][i+1][2] * tmp1_jacu ) );
-	      au[j][i][3][1] =  dt * tx2
+	      au[k][j][i][3][1] =  dt * tx2
 		* ( - C2 * ( u[k][j][i+1][3] * tmp1_jacu ) );
-	      au[j][i][4][1] =  dt * tx2 * C2 ;
+	      au[k][j][i][4][1] =  dt * tx2 * C2 ;
 
-	      au[j][i][0][2] =  dt * tx2
+	      au[k][j][i][0][2] =  dt * tx2
 		* ( - ( u[k][j][i+1][1] * u[k][j][i+1][2] ) * tmp2_jacu )
 		- dt * tx1 * ( - c34 * tmp2_jacu * u[k][j][i+1][2] );
-	      au[j][i][1][2] =  dt * tx2 * ( u[k][j][i+1][2] * tmp1_jacu );
-	      au[j][i][2][2] =  dt * tx2 * ( u[k][j][i+1][1] * tmp1_jacu )
+	      au[k][j][i][1][2] =  dt * tx2 * ( u[k][j][i+1][2] * tmp1_jacu );
+	      au[k][j][i][2][2] =  dt * tx2 * ( u[k][j][i+1][1] * tmp1_jacu )
 		- dt * tx1 * ( c34 * tmp1_jacu )
 		- dt * tx1 * dx3;
-	      au[j][i][3][2] = 0.0;
-	      au[j][i][4][2] = 0.0;
+	      au[k][j][i][3][2] = 0.0;
+	      au[k][j][i][4][2] = 0.0;
 
-	      au[j][i][0][3] = dt * tx2
+	      au[k][j][i][0][3] = dt * tx2
 		* ( - ( u[k][j][i+1][1]*u[k][j][i+1][3] ) * tmp2_jacu )
 		- dt * tx1 * ( - c34 * tmp2_jacu * u[k][j][i+1][3] );
-	      au[j][i][1][3] = dt * tx2 * ( u[k][j][i+1][3] * tmp1_jacu );
-	      au[j][i][2][3] = 0.0;
-	      au[j][i][3][3] = dt * tx2 * ( u[k][j][i+1][1] * tmp1_jacu )
+	      au[k][j][i][1][3] = dt * tx2 * ( u[k][j][i+1][3] * tmp1_jacu );
+	      au[k][j][i][2][3] = 0.0;
+	      au[k][j][i][3][3] = dt * tx2 * ( u[k][j][i+1][1] * tmp1_jacu )
 		- dt * tx1 * ( c34 * tmp1_jacu )
 		- dt * tx1 * dx4;
-	      au[j][i][4][3] = 0.0;
+	      au[k][j][i][4][3] = 0.0;
 
-	      au[j][i][0][4] = dt * tx2
+	      au[k][j][i][0][4] = dt * tx2
 		* ( ( C2 * 2.0 * qs[k][j][i+1]
 		    - C1 * u[k][j][i+1][4] )
 		* ( u[k][j][i+1][1] * tmp2_jacu ) )
@@ -695,22 +711,22 @@ void ssor(int niter)
 		    - (     c34 - c1345 ) * tmp3_jacu * ( u[k][j][i+1][2]*u[k][j][i+1][2] )
 		    - (     c34 - c1345 ) * tmp3_jacu * ( u[k][j][i+1][3]*u[k][j][i+1][3] )
 		    - c1345 * tmp2_jacu * u[k][j][i+1][4] );
-	      au[j][i][1][4] = dt * tx2
+	      au[k][j][i][1][4] = dt * tx2
 		* ( C1 * ( u[k][j][i+1][4] * tmp1_jacu )
 		    - C2
 		    * ( u[k][j][i+1][1]*u[k][j][i+1][1] * tmp2_jacu
 		      + qs[k][j][i+1] * tmp1_jacu ) )
 		- dt * tx1
 		* ( r43*c34 - c1345 ) * tmp2_jacu * u[k][j][i+1][1];
-	      au[j][i][2][4] = dt * tx2
+	      au[k][j][i][2][4] = dt * tx2
 		* ( - C2 * ( u[k][j][i+1][2]*u[k][j][i+1][1] ) * tmp2_jacu )
 		- dt * tx1
 		* (  c34 - c1345 ) * tmp2_jacu * u[k][j][i+1][2];
-	      au[j][i][3][4] = dt * tx2
+	      au[k][j][i][3][4] = dt * tx2
 		* ( - C2 * ( u[k][j][i+1][3]*u[k][j][i+1][1] ) * tmp2_jacu )
 		- dt * tx1
 		* (  c34 - c1345 ) * tmp2_jacu * u[k][j][i+1][3];
-	      au[j][i][4][4] = dt * tx2
+	      au[k][j][i][4][4] = dt * tx2
 		* ( C1 * ( u[k][j][i+1][1] * tmp1_jacu ) )
 		- dt * tx1 * c1345 * tmp1_jacu
 		- dt * tx1 * dx5;
@@ -722,47 +738,47 @@ void ssor(int niter)
 	      tmp2_jacu = tmp1_jacu * tmp1_jacu;
 	      tmp3_jacu = tmp1_jacu * tmp2_jacu;
 
-	      bu[j][i][0][0] = - dt * ty1 * dy1;
-	      bu[j][i][1][0] =   0.0;
-	      bu[j][i][2][0] =  dt * ty2;
-	      bu[j][i][3][0] =   0.0;
-	      bu[j][i][4][0] =   0.0;
+	      bu[k][j][i][0][0] = - dt * ty1 * dy1;
+	      bu[k][j][i][1][0] =   0.0;
+	      bu[k][j][i][2][0] =  dt * ty2;
+	      bu[k][j][i][3][0] =   0.0;
+	      bu[k][j][i][4][0] =   0.0;
 
-	      bu[j][i][0][1] =  dt * ty2
+	      bu[k][j][i][0][1] =  dt * ty2
 		* ( - ( u[k][j+1][i][1]*u[k][j+1][i][2] ) * tmp2_jacu )
 		- dt * ty1 * ( - c34 * tmp2_jacu * u[k][j+1][i][1] );
-	      bu[j][i][1][1] =  dt * ty2 * ( u[k][j+1][i][2] * tmp1_jacu )
+	      bu[k][j][i][1][1] =  dt * ty2 * ( u[k][j+1][i][2] * tmp1_jacu )
 		- dt * ty1 * ( c34 * tmp1_jacu )
 		- dt * ty1 * dy2;
-	      bu[j][i][2][1] =  dt * ty2 * ( u[k][j+1][i][1] * tmp1_jacu );
-	      bu[j][i][3][1] = 0.0;
-	      bu[j][i][4][1] = 0.0;
+	      bu[k][j][i][2][1] =  dt * ty2 * ( u[k][j+1][i][1] * tmp1_jacu );
+	      bu[k][j][i][3][1] = 0.0;
+	      bu[k][j][i][4][1] = 0.0;
 
-	      bu[j][i][0][2] =  dt * ty2
+	      bu[k][j][i][0][2] =  dt * ty2
 		* ( - ( u[k][j+1][i][2] * tmp1_jacu ) * ( u[k][j+1][i][2] * tmp1_jacu )
 		    + C2 * ( qs[k][j+1][i] * tmp1_jacu ) )
 		- dt * ty1 * ( - r43 * c34 * tmp2_jacu * u[k][j+1][i][2] );
-	      bu[j][i][1][2] =  dt * ty2
+	      bu[k][j][i][1][2] =  dt * ty2
 		* ( - C2 * ( u[k][j+1][i][1] * tmp1_jacu ) );
-	      bu[j][i][2][2] =  dt * ty2 * ( ( 2.0 - C2 )
+	      bu[k][j][i][2][2] =  dt * ty2 * ( ( 2.0 - C2 )
 		  * ( u[k][j+1][i][2] * tmp1_jacu ) )
 		- dt * ty1 * ( r43 * c34 * tmp1_jacu )
 		- dt * ty1 * dy3;
-	      bu[j][i][3][2] =  dt * ty2
+	      bu[k][j][i][3][2] =  dt * ty2
 		* ( - C2 * ( u[k][j+1][i][3] * tmp1_jacu ) );
-	      bu[j][i][4][2] =  dt * ty2 * C2;
+	      bu[k][j][i][4][2] =  dt * ty2 * C2;
 
-	      bu[j][i][0][3] =  dt * ty2
+	      bu[k][j][i][0][3] =  dt * ty2
 		* ( - ( u[k][j+1][i][2]*u[k][j+1][i][3] ) * tmp2_jacu )
 		- dt * ty1 * ( - c34 * tmp2_jacu * u[k][j+1][i][3] );
-	      bu[j][i][1][3] = 0.0;
-	      bu[j][i][2][3] =  dt * ty2 * ( u[k][j+1][i][3] * tmp1_jacu );
-	      bu[j][i][3][3] =  dt * ty2 * ( u[k][j+1][i][2] * tmp1_jacu )
+	      bu[k][j][i][1][3] = 0.0;
+	      bu[k][j][i][2][3] =  dt * ty2 * ( u[k][j+1][i][3] * tmp1_jacu );
+	      bu[k][j][i][3][3] =  dt * ty2 * ( u[k][j+1][i][2] * tmp1_jacu )
 		- dt * ty1 * ( c34 * tmp1_jacu )
 		- dt * ty1 * dy4;
-	      bu[j][i][4][3] = 0.0;
+	      bu[k][j][i][4][3] = 0.0;
 
-	      bu[j][i][0][4] =  dt * ty2
+	      bu[k][j][i][0][4] =  dt * ty2
 		* ( ( C2 * 2.0 * qs[k][j+1][i]
 		    - C1 * u[k][j+1][i][4] )
 		* ( u[k][j+1][i][2] * tmp2_jacu ) )
@@ -771,21 +787,21 @@ void ssor(int niter)
 		    - ( r43*c34 - c1345 )*tmp3_jacu*(u[k][j+1][i][2]*u[k][j+1][i][2])
 		    - (     c34 - c1345 )*tmp3_jacu*(u[k][j+1][i][3]*u[k][j+1][i][3])
 		    - c1345*tmp2_jacu*u[k][j+1][i][4] );
-	      bu[j][i][1][4] =  dt * ty2
+	      bu[k][j][i][1][4] =  dt * ty2
 		* ( - C2 * ( u[k][j+1][i][1]*u[k][j+1][i][2] ) * tmp2_jacu )
 		- dt * ty1
 		* ( c34 - c1345 ) * tmp2_jacu * u[k][j+1][i][1];
-	      bu[j][i][2][4] =  dt * ty2
+	      bu[k][j][i][2][4] =  dt * ty2
 		* ( C1 * ( u[k][j+1][i][4] * tmp1_jacu )
 		    - C2 
 		    * ( qs[k][j+1][i] * tmp1_jacu
 		      + u[k][j+1][i][2]*u[k][j+1][i][2] * tmp2_jacu ) )
 		- dt * ty1
 		* ( r43*c34 - c1345 ) * tmp2_jacu * u[k][j+1][i][2];
-	      bu[j][i][3][4] =  dt * ty2
+	      bu[k][j][i][3][4] =  dt * ty2
 		* ( - C2 * ( u[k][j+1][i][2]*u[k][j+1][i][3] ) * tmp2_jacu )
 		- dt * ty1 * ( c34 - c1345 ) * tmp2_jacu * u[k][j+1][i][3];
-	      bu[j][i][4][4] =  dt * ty2
+	      bu[k][j][i][4][4] =  dt * ty2
 		* ( C1 * ( u[k][j+1][i][2] * tmp1_jacu ) )
 		- dt * ty1 * c1345 * tmp1_jacu
 		- dt * ty1 * dy5;
@@ -797,47 +813,47 @@ void ssor(int niter)
 	      tmp2_jacu = tmp1_jacu * tmp1_jacu;
 	      tmp3_jacu = tmp1_jacu * tmp2_jacu;
 
-	      cu[j][i][0][0] = - dt * tz1 * dz1;
-	      cu[j][i][1][0] =   0.0;
-	      cu[j][i][2][0] =   0.0;
-	      cu[j][i][3][0] = dt * tz2;
-	      cu[j][i][4][0] =   0.0;
+	      cu[k][j][i][0][0] = - dt * tz1 * dz1;
+	      cu[k][j][i][1][0] =   0.0;
+	      cu[k][j][i][2][0] =   0.0;
+	      cu[k][j][i][3][0] = dt * tz2;
+	      cu[k][j][i][4][0] =   0.0;
 
-	      cu[j][i][0][1] = dt * tz2
+	      cu[k][j][i][0][1] = dt * tz2
 		* ( - ( u[k+1][j][i][1]*u[k+1][j][i][3] ) * tmp2_jacu )
 		- dt * tz1 * ( - c34 * tmp2_jacu * u[k+1][j][i][1] );
-	      cu[j][i][1][1] = dt * tz2 * ( u[k+1][j][i][3] * tmp1_jacu )
+	      cu[k][j][i][1][1] = dt * tz2 * ( u[k+1][j][i][3] * tmp1_jacu )
 		- dt * tz1 * c34 * tmp1_jacu
 		- dt * tz1 * dz2;
-	      cu[j][i][2][1] = 0.0;
-	      cu[j][i][3][1] = dt * tz2 * ( u[k+1][j][i][1] * tmp1_jacu );
-	      cu[j][i][4][1] = 0.0;
+	      cu[k][j][i][2][1] = 0.0;
+	      cu[k][j][i][3][1] = dt * tz2 * ( u[k+1][j][i][1] * tmp1_jacu );
+	      cu[k][j][i][4][1] = 0.0;
 
-	      cu[j][i][0][2] = dt * tz2
+	      cu[k][j][i][0][2] = dt * tz2
 		* ( - ( u[k+1][j][i][2]*u[k+1][j][i][3] ) * tmp2_jacu )
 		- dt * tz1 * ( - c34 * tmp2_jacu * u[k+1][j][i][2] );
-	      cu[j][i][1][2] = 0.0;
-	      cu[j][i][2][2] = dt * tz2 * ( u[k+1][j][i][3] * tmp1_jacu )
+	      cu[k][j][i][1][2] = 0.0;
+	      cu[k][j][i][2][2] = dt * tz2 * ( u[k+1][j][i][3] * tmp1_jacu )
 		- dt * tz1 * ( c34 * tmp1_jacu )
 		- dt * tz1 * dz3;
-	      cu[j][i][3][2] = dt * tz2 * ( u[k+1][j][i][2] * tmp1_jacu );
-	      cu[j][i][4][2] = 0.0;
+	      cu[k][j][i][3][2] = dt * tz2 * ( u[k+1][j][i][2] * tmp1_jacu );
+	      cu[k][j][i][4][2] = 0.0;
 
-	      cu[j][i][0][3] = dt * tz2
+	      cu[k][j][i][0][3] = dt * tz2
 		* ( - ( u[k+1][j][i][3] * tmp1_jacu ) * ( u[k+1][j][i][3] * tmp1_jacu )
 		    + C2 * ( qs[k+1][j][i] * tmp1_jacu ) )
 		- dt * tz1 * ( - r43 * c34 * tmp2_jacu * u[k+1][j][i][3] );
-	      cu[j][i][1][3] = dt * tz2
+	      cu[k][j][i][1][3] = dt * tz2
 		* ( - C2 * ( u[k+1][j][i][1] * tmp1_jacu ) );
-	      cu[j][i][2][3] = dt * tz2
+	      cu[k][j][i][2][3] = dt * tz2
 		* ( - C2 * ( u[k+1][j][i][2] * tmp1_jacu ) );
-	      cu[j][i][3][3] = dt * tz2 * ( 2.0 - C2 )
+	      cu[k][j][i][3][3] = dt * tz2 * ( 2.0 - C2 )
 		* ( u[k+1][j][i][3] * tmp1_jacu )
 		- dt * tz1 * ( r43 * c34 * tmp1_jacu )
 		- dt * tz1 * dz4;
-	      cu[j][i][4][3] = dt * tz2 * C2;
+	      cu[k][j][i][4][3] = dt * tz2 * C2;
 
-	      cu[j][i][0][4] = dt * tz2
+	      cu[k][j][i][0][4] = dt * tz2
 		* ( ( C2 * 2.0 * qs[k+1][j][i]
 		    - C1 * u[k+1][j][i][4] )
 		         * ( u[k+1][j][i][3] * tmp2_jacu ) )
@@ -846,19 +862,19 @@ void ssor(int niter)
 		    - ( c34 - c1345 ) * tmp3_jacu * (u[k+1][j][i][2]*u[k+1][j][i][2])
 		    - ( r43*c34 - c1345 )* tmp3_jacu * (u[k+1][j][i][3]*u[k+1][j][i][3])
 		    - c1345 * tmp2_jacu * u[k+1][j][i][4] );
-	      cu[j][i][1][4] = dt * tz2
+	      cu[k][j][i][1][4] = dt * tz2
 		* ( - C2 * ( u[k+1][j][i][1]*u[k+1][j][i][3] ) * tmp2_jacu )
 		- dt * tz1 * ( c34 - c1345 ) * tmp2_jacu * u[k+1][j][i][1];
-	      cu[j][i][2][4] = dt * tz2
+	      cu[k][j][i][2][4] = dt * tz2
 		* ( - C2 * ( u[k+1][j][i][2]*u[k+1][j][i][3] ) * tmp2_jacu )
 		- dt * tz1 * ( c34 - c1345 ) * tmp2_jacu * u[k+1][j][i][2];
-	      cu[j][i][3][4] = dt * tz2
+	      cu[k][j][i][3][4] = dt * tz2
 		* ( C1 * ( u[k+1][j][i][4] * tmp1_jacu )
 		    - C2
 		    * ( qs[k+1][j][i] * tmp1_jacu
 		      + u[k+1][j][i][3]*u[k+1][j][i][3] * tmp2_jacu ) )
 		- dt * tz1 * ( r43*c34 - c1345 ) * tmp2_jacu * u[k+1][j][i][3];
-	      cu[j][i][4][4] = dt * tz2
+	      cu[k][j][i][4][4] = dt * tz2
 		* ( C1 * ( u[k+1][j][i][3] * tmp1_jacu ) )
 		- dt * tz1 * c1345 * tmp1_jacu
 		- dt * tz1 * dz5;
@@ -866,126 +882,126 @@ void ssor(int niter)
 	       // start buts
 	       for (m = 0; m < 5; m++) {
 		tv_buts[j][i][m] = 
-		  omega * (  cu[j][i][0][m] * rsd[k+1][j][i][0]
-		           + cu[j][i][1][m] * rsd[k+1][j][i][1]
-		           + cu[j][i][2][m] * rsd[k+1][j][i][2]
-		           + cu[j][i][3][m] * rsd[k+1][j][i][3]
-		           + cu[j][i][4][m] * rsd[k+1][j][i][4] );
+		  omega * (  cu[k][j][i][0][m] * rsd[k+1][j][i][0]
+		           + cu[k][j][i][1][m] * rsd[k+1][j][i][1]
+		           + cu[k][j][i][2][m] * rsd[k+1][j][i][2]
+		           + cu[k][j][i][3][m] * rsd[k+1][j][i][3]
+		           + cu[k][j][i][4][m] * rsd[k+1][j][i][4] );
 	      }
 	for (m = 0; m < 5; m++) {
 		tv_buts[j][i][m] = tv_buts[j][i][m]
-		  + omega * ( bu[j][i][0][m] * rsd[k][j+1][i][0]
-		            + au[j][i][0][m] * rsd[k][j][i+1][0]
-		            + bu[j][i][1][m] * rsd[k][j+1][i][1]
-		            + au[j][i][1][m] * rsd[k][j][i+1][1]
-		            + bu[j][i][2][m] * rsd[k][j+1][i][2]
-		            + au[j][i][2][m] * rsd[k][j][i+1][2]
-		            + bu[j][i][3][m] * rsd[k][j+1][i][3]
-		            + au[j][i][3][m] * rsd[k][j][i+1][3]
-		            + bu[j][i][4][m] * rsd[k][j+1][i][4]
-		            + au[j][i][4][m] * rsd[k][j][i+1][4] );
+		  + omega * ( bu[k][j][i][0][m] * rsd[k][j+1][i][0]
+		            + au[k][j][i][0][m] * rsd[k][j][i+1][0]
+		            + bu[k][j][i][1][m] * rsd[k][j+1][i][1]
+		            + au[k][j][i][1][m] * rsd[k][j][i+1][1]
+		            + bu[k][j][i][2][m] * rsd[k][j+1][i][2]
+		            + au[k][j][i][2][m] * rsd[k][j][i+1][2]
+		            + bu[k][j][i][3][m] * rsd[k][j+1][i][3]
+		            + au[k][j][i][3][m] * rsd[k][j][i+1][3]
+		            + bu[k][j][i][4][m] * rsd[k][j+1][i][4]
+		            + au[k][j][i][4][m] * rsd[k][j][i+1][4] );
 	      }
 
 	      //---------------------------------------------------------------------
 	      // diagonal block inversion
 	      //---------------------------------------------------------------------
 	      for (m = 0; m < 5; m++) {
-		tmat_buts[j][m][0] = du[j][i][0][m];
-		tmat_buts[j][m][1] = du[j][i][1][m];
-		tmat_buts[j][m][2] = du[j][i][2][m];
-		tmat_buts[j][m][3] = du[j][i][3][m];
-		tmat_buts[j][m][4] = du[j][i][4][m];
+		tmat_buts[k][j][m][0] = du[k][j][i][0][m];
+		tmat_buts[k][j][m][1] = du[k][j][i][1][m];
+		tmat_buts[k][j][m][2] = du[k][j][i][2][m];
+		tmat_buts[k][j][m][3] = du[k][j][i][3][m];
+		tmat_buts[k][j][m][4] = du[k][j][i][4][m];
 	      }
 
-	      tmp1_buts = 1.0 / tmat_buts[j][0][0];
-	      tmp_buts = tmp1_buts * tmat_buts[j][1][0];
-	      tmat_buts[j][1][1] =  tmat_buts[j][1][1] - tmp_buts * tmat_buts[j][0][1];
-	      tmat_buts[j][1][2] =  tmat_buts[j][1][2] - tmp_buts * tmat_buts[j][0][2];
-	      tmat_buts[j][1][3] =  tmat_buts[j][1][3] - tmp_buts * tmat_buts[j][0][3];
-	      tmat_buts[j][1][4] =  tmat_buts[j][1][4] - tmp_buts * tmat_buts[j][0][4];
+	      tmp1_buts = 1.0 / tmat_buts[k][j][0][0];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][1][0];
+	      tmat_buts[k][j][1][1] =  tmat_buts[k][j][1][1] - tmp_buts * tmat_buts[k][j][0][1];
+	      tmat_buts[k][j][1][2] =  tmat_buts[k][j][1][2] - tmp_buts * tmat_buts[k][j][0][2];
+	      tmat_buts[k][j][1][3] =  tmat_buts[k][j][1][3] - tmp_buts * tmat_buts[k][j][0][3];
+	      tmat_buts[k][j][1][4] =  tmat_buts[k][j][1][4] - tmp_buts * tmat_buts[k][j][0][4];
 	      tv_buts[j][i][1] = tv_buts[j][i][1] - tv_buts[j][i][0] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[j][2][0];
-	      tmat_buts[j][2][1] =  tmat_buts[j][2][1] - tmp_buts * tmat_buts[j][0][1];
-	      tmat_buts[j][2][2] =  tmat_buts[j][2][2] - tmp_buts * tmat_buts[j][0][2];
-	      tmat_buts[j][2][3] =  tmat_buts[j][2][3] - tmp_buts * tmat_buts[j][0][3];
-	      tmat_buts[j][2][4] =  tmat_buts[j][2][4] - tmp_buts * tmat_buts[j][0][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][2][0];
+	      tmat_buts[k][j][2][1] =  tmat_buts[k][j][2][1] - tmp_buts * tmat_buts[k][j][0][1];
+	      tmat_buts[k][j][2][2] =  tmat_buts[k][j][2][2] - tmp_buts * tmat_buts[k][j][0][2];
+	      tmat_buts[k][j][2][3] =  tmat_buts[k][j][2][3] - tmp_buts * tmat_buts[k][j][0][3];
+	      tmat_buts[k][j][2][4] =  tmat_buts[k][j][2][4] - tmp_buts * tmat_buts[k][j][0][4];
 	      tv_buts[j][i][2] = tv_buts[j][i][2] - tv_buts[j][i][0] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[j][3][0];
-	      tmat_buts[j][3][1] =  tmat_buts[j][3][1] - tmp_buts * tmat_buts[j][0][1];
-	      tmat_buts[j][3][2] =  tmat_buts[j][3][2] - tmp_buts * tmat_buts[j][0][2];
-	      tmat_buts[j][3][3] =  tmat_buts[j][3][3] - tmp_buts * tmat_buts[j][0][3];
-	      tmat_buts[j][3][4] =  tmat_buts[j][3][4] - tmp_buts * tmat_buts[j][0][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][3][0];
+	      tmat_buts[k][j][3][1] =  tmat_buts[k][j][3][1] - tmp_buts * tmat_buts[k][j][0][1];
+	      tmat_buts[k][j][3][2] =  tmat_buts[k][j][3][2] - tmp_buts * tmat_buts[k][j][0][2];
+	      tmat_buts[k][j][3][3] =  tmat_buts[k][j][3][3] - tmp_buts * tmat_buts[k][j][0][3];
+	      tmat_buts[k][j][3][4] =  tmat_buts[k][j][3][4] - tmp_buts * tmat_buts[k][j][0][4];
 	      tv_buts[j][i][3] = tv_buts[j][i][3] - tv_buts[j][i][0] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[j][4][0];
-	      tmat_buts[j][4][1] =  tmat_buts[j][4][1] - tmp_buts * tmat_buts[j][0][1];
-	      tmat_buts[j][4][2] =  tmat_buts[j][4][2] - tmp_buts * tmat_buts[j][0][2];
-	      tmat_buts[j][4][3] =  tmat_buts[j][4][3] - tmp_buts * tmat_buts[j][0][3];
-	      tmat_buts[j][4][4] =  tmat_buts[j][4][4] - tmp_buts * tmat_buts[j][0][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][4][0];
+	      tmat_buts[k][j][4][1] =  tmat_buts[k][j][4][1] - tmp_buts * tmat_buts[k][j][0][1];
+	      tmat_buts[k][j][4][2] =  tmat_buts[k][j][4][2] - tmp_buts * tmat_buts[k][j][0][2];
+	      tmat_buts[k][j][4][3] =  tmat_buts[k][j][4][3] - tmp_buts * tmat_buts[k][j][0][3];
+	      tmat_buts[k][j][4][4] =  tmat_buts[k][j][4][4] - tmp_buts * tmat_buts[k][j][0][4];
 	      tv_buts[j][i][4] = tv_buts[j][i][4] - tv_buts[j][i][0] * tmp_buts;
 
-	      tmp1_buts = 1.0 / tmat_buts[j][1][1];
-	      tmp_buts = tmp1_buts * tmat_buts[j][2][1];
-	      tmat_buts[j][2][2] =  tmat_buts[j][2][2] - tmp_buts * tmat_buts[j][1][2];
-	      tmat_buts[j][2][3] =  tmat_buts[j][2][3] - tmp_buts * tmat_buts[j][1][3];
-	      tmat_buts[j][2][4] =  tmat_buts[j][2][4] - tmp_buts * tmat_buts[j][1][4];
+	      tmp1_buts = 1.0 / tmat_buts[k][j][1][1];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][2][1];
+	      tmat_buts[k][j][2][2] =  tmat_buts[k][j][2][2] - tmp_buts * tmat_buts[k][j][1][2];
+	      tmat_buts[k][j][2][3] =  tmat_buts[k][j][2][3] - tmp_buts * tmat_buts[k][j][1][3];
+	      tmat_buts[k][j][2][4] =  tmat_buts[k][j][2][4] - tmp_buts * tmat_buts[k][j][1][4];
 	      tv_buts[j][i][2] = tv_buts[j][i][2] - tv_buts[j][i][1] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[j][3][1];
-	      tmat_buts[j][3][2] =  tmat_buts[j][3][2] - tmp_buts * tmat_buts[j][1][2];
-	      tmat_buts[j][3][3] =  tmat_buts[j][3][3] - tmp_buts * tmat_buts[j][1][3];
-	      tmat_buts[j][3][4] =  tmat_buts[j][3][4] - tmp_buts * tmat_buts[j][1][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][3][1];
+	      tmat_buts[k][j][3][2] =  tmat_buts[k][j][3][2] - tmp_buts * tmat_buts[k][j][1][2];
+	      tmat_buts[k][j][3][3] =  tmat_buts[k][j][3][3] - tmp_buts * tmat_buts[k][j][1][3];
+	      tmat_buts[k][j][3][4] =  tmat_buts[k][j][3][4] - tmp_buts * tmat_buts[k][j][1][4];
 	      tv_buts[j][i][3] = tv_buts[j][i][3] - tv_buts[j][i][1] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[j][4][1];
-	      tmat_buts[j][4][2] =  tmat_buts[j][4][2] - tmp_buts * tmat_buts[j][1][2];
-	      tmat_buts[j][4][3] =  tmat_buts[j][4][3] - tmp_buts * tmat_buts[j][1][3];
-	      tmat_buts[j][4][4] =  tmat_buts[j][4][4] - tmp_buts * tmat_buts[j][1][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][4][1];
+	      tmat_buts[k][j][4][2] =  tmat_buts[k][j][4][2] - tmp_buts * tmat_buts[k][j][1][2];
+	      tmat_buts[k][j][4][3] =  tmat_buts[k][j][4][3] - tmp_buts * tmat_buts[k][j][1][3];
+	      tmat_buts[k][j][4][4] =  tmat_buts[k][j][4][4] - tmp_buts * tmat_buts[k][j][1][4];
 	      tv_buts[j][i][4] = tv_buts[j][i][4] - tv_buts[j][i][1] * tmp_buts;
 
-	      tmp1_buts = 1.0 / tmat_buts[j][2][2];
-	      tmp_buts = tmp1_buts * tmat_buts[j][3][2];
-	      tmat_buts[j][3][3] =  tmat_buts[j][3][3] - tmp_buts * tmat_buts[j][2][3];
-	      tmat_buts[j][3][4] =  tmat_buts[j][3][4] - tmp_buts * tmat_buts[j][2][4];
+	      tmp1_buts = 1.0 / tmat_buts[k][j][2][2];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][3][2];
+	      tmat_buts[k][j][3][3] =  tmat_buts[k][j][3][3] - tmp_buts * tmat_buts[k][j][2][3];
+	      tmat_buts[k][j][3][4] =  tmat_buts[k][j][3][4] - tmp_buts * tmat_buts[k][j][2][4];
 	      tv_buts[j][i][3] = tv_buts[j][i][3] - tv_buts[j][i][2] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[j][4][2];
-	      tmat_buts[j][4][3] =  tmat_buts[j][4][3] - tmp_buts * tmat_buts[j][2][3];
-	      tmat_buts[j][4][4] =  tmat_buts[j][4][4] - tmp_buts * tmat_buts[j][2][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][4][2];
+	      tmat_buts[k][j][4][3] =  tmat_buts[k][j][4][3] - tmp_buts * tmat_buts[k][j][2][3];
+	      tmat_buts[k][j][4][4] =  tmat_buts[k][j][4][4] - tmp_buts * tmat_buts[k][j][2][4];
 	      tv_buts[j][i][4] = tv_buts[j][i][4] - tv_buts[j][i][2] * tmp_buts;
 
-	      tmp1_buts = 1.0 / tmat_buts[j][3][3];
-	      tmp_buts = tmp1_buts * tmat_buts[j][4][3];
-	      tmat_buts[j][4][4] =  tmat_buts[j][4][4] - tmp_buts * tmat_buts[j][3][4];
+	      tmp1_buts = 1.0 / tmat_buts[k][j][3][3];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][4][3];
+	      tmat_buts[k][j][4][4] =  tmat_buts[k][j][4][4] - tmp_buts * tmat_buts[k][j][3][4];
 	      tv_buts[j][i][4] = tv_buts[j][i][4] - tv_buts[j][i][3] * tmp_buts;
 
 	      //---------------------------------------------------------------------
 	      // back substitution
 	      //---------------------------------------------------------------------
-	      tv_buts[j][i][4] = tv_buts[j][i][4] / tmat_buts[j][4][4];
+	      tv_buts[j][i][4] = tv_buts[j][i][4] / tmat_buts[k][j][4][4];
 
-	      tv_buts[j][i][3] = tv_buts[j][i][3] - tmat_buts[j][3][4] * tv_buts[j][i][4];
-	      tv_buts[j][i][3] = tv_buts[j][i][3] / tmat_buts[j][3][3];
+	      tv_buts[j][i][3] = tv_buts[j][i][3] - tmat_buts[k][j][3][4] * tv_buts[j][i][4];
+	      tv_buts[j][i][3] = tv_buts[j][i][3] / tmat_buts[k][j][3][3];
 
 	      tv_buts[j][i][2] = tv_buts[j][i][2]
-		- tmat_buts[j][2][3] * tv_buts[j][i][3]
-		- tmat_buts[j][2][4] * tv_buts[j][i][4];
-	      tv_buts[j][i][2] = tv_buts[j][i][2] / tmat_buts[j][2][2];
+		- tmat_buts[k][j][2][3] * tv_buts[j][i][3]
+		- tmat_buts[k][j][2][4] * tv_buts[j][i][4];
+	      tv_buts[j][i][2] = tv_buts[j][i][2] / tmat_buts[k][j][2][2];
 
 	      tv_buts[j][i][1] = tv_buts[j][i][1]
-		- tmat_buts[j][1][2] * tv_buts[j][i][2]
-		- tmat_buts[j][1][3] * tv_buts[j][i][3]
-		- tmat_buts[j][1][4] * tv_buts[j][i][4];
-	      tv_buts[j][i][1] = tv_buts[j][i][1] / tmat_buts[j][1][1];
+		- tmat_buts[k][j][1][2] * tv_buts[j][i][2]
+		- tmat_buts[k][j][1][3] * tv_buts[j][i][3]
+		- tmat_buts[k][j][1][4] * tv_buts[j][i][4];
+	      tv_buts[j][i][1] = tv_buts[j][i][1] / tmat_buts[k][j][1][1];
 
 	      tv_buts[j][i][0] = tv_buts[j][i][0]
-		- tmat_buts[j][0][1] * tv_buts[j][i][1]
-		- tmat_buts[j][0][2] * tv_buts[j][i][2]
-		- tmat_buts[j][0][3] * tv_buts[j][i][3]
-		- tmat_buts[j][0][4] * tv_buts[j][i][4];
-	      tv_buts[j][i][0] = tv_buts[j][i][0] / tmat_buts[j][0][0];
+		- tmat_buts[k][j][0][1] * tv_buts[j][i][1]
+		- tmat_buts[k][j][0][2] * tv_buts[j][i][2]
+		- tmat_buts[k][j][0][3] * tv_buts[j][i][3]
+		- tmat_buts[k][j][0][4] * tv_buts[j][i][4];
+	      tv_buts[j][i][0] = tv_buts[j][i][0] / tmat_buts[k][j][0][0];
 
 	      rsd[k][j][i][0] = rsd[k][j][i][0] - tv_buts[j][i][0];
 	      rsd[k][j][i][1] = rsd[k][j][i][1] - tv_buts[j][i][1];
