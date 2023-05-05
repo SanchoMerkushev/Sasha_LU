@@ -1021,8 +1021,9 @@ void ssor(int niter)
     //#pragma omp master
     tmp2 = tmp;
     //#pragma omp for nowait
-    #pragma acc parallel loop private(k, j, i, m) collapse(3)
+    #pragma acc parallel loop private(k, j, i, m)
     for (k = 1; k < nz-1; k++) {
+      #pragma acc loop
       for (j = jst; j < jend; j++) {
         for (i = ist; i < iend; i++) {
           for (m = 0; m < 5; m++) {
@@ -1100,8 +1101,9 @@ void ssor(int niter)
 		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
 	  {
 	  //#pragma omp for schedule(static)
-	  #pragma acc parallel loop private(i,j,k, m) collapse(3)
+	  #pragma acc parallel loop private(i,j,k, m)
 	  for (k = 0; k < nz; k++) {
+	    #pragma acc loop
 	    for (j = 0; j < ny; j++) {
 	      for (i = 0; i < nx; i++) {
 		for (m = 0; m < 5; m++) {
@@ -1124,8 +1126,9 @@ void ssor(int niter)
 	  #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
-		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41) collapse(2)
+		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
 	  for (k = 1; k < nz - 1; k++) {
+	    #pragma acc loop
 	    for (j = jst; j < jend; j++) {
 	      for (i = 0; i < nx; i++) {
 		flux[i][0] = u[k][j][i][1];
@@ -1247,8 +1250,9 @@ void ssor(int niter)
 	  #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
-		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41) collapse(2)
+		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
 	  for (k = 1; k < nz - 1; k++) {
+	    #pragma acc loop
 	    for (i = ist; i < iend; i++) {
 	      for (j = 0; j < ny; j++) {
 		flux[j][0] = u[k][j][i][2];
@@ -1379,8 +1383,9 @@ void ssor(int niter)
 	  #pragma acc parallel loop private(i,j,k,m,q,flux,tmp_rhs,u_rhs,r_rhs,\
 		      u51im1,u41im1,u31im1,u21im1,u51i,u41i,u31i,u21i,u21, \
 		      u51jm1,u41jm1,u31jm1,u21jm1,u51j,u41j,u31j,u21j,u31, \
-		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41) collapse(2)
+		      u51km1,u41km1,u31km1,u21km1,u51k,u41k,u31k,u21k,u41)
 	  for (j = jst; j < jend; j++) {
+	    #pragma acc loop
 	    for (i = ist; i < iend; i++) {
 	      for (k = 0; k < nz; k++) {
 		u_rhs[k][0] = u[k][j][i][0];
