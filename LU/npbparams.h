@@ -1,4 +1,4 @@
-/* CLASS = A */
+/* CLASS = C */
 /*
    This file is generated automatically by the setparams utility.
    It sets the number of processors and the class of the NPB
@@ -6,9 +6,9 @@
 */
 
 /* full problem size */
-#define ISIZ1  64
-#define ISIZ2  64
-#define ISIZ3  64
+#define ISIZ1  162
+#define ISIZ2  162
+#define ISIZ3  162
 
 /* number of iterations and how often to print the norm */
 #define ITMAX_DEFAULT  250
@@ -22,6 +22,6 @@
 #define CS2 "$(CC)"
 #define CS3 "-lm"
 #define CS4 "-I../common"
-#define CS5 "-O3 -acc -ta=nvidia -Minfo=all  -mcmodel=me..."
-#define CS6 "-O3 -acc -ta=nvidia -Minfo=all  -mcmodel=me..."
+#define CS5 "-O3 -acc -ta=multicore -Minfo=all  -mcmodel..."
+#define CS6 "-O3 -acc -ta=multicore -Minfo=all  -mcmodel..."
 #define CS7 "randdp"

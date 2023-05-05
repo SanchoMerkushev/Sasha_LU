@@ -41,7 +41,7 @@ void ssor(int niter)
   // begin pseudo-time stepping iterations
   //---------------------------------------------------------------------
   tmp = 1.0 / ( omega * ( 2.0 - omega ) );
-
+  printf("%d %d\n", jst, jend);
   //---------------------------------------------------------------------
   // initialize a,b,c,d to zero (guarantees that page tables have been
   // formed, if applicable on given architecture, before timestepping).
@@ -49,7 +49,7 @@ void ssor(int niter)
   //#pragma omp parallel default(shared) private(m,n,i,j)
   //#pragma omp for nowait
   //#pragma acc parallel private(k,m,n,i,j)
-  for (k = 0; k < ISIZ1; k++) {
+  for (k = jst; k < jend; k++) {
     for (j = jst; j < jend; j++) {
       for (i = ist; i < iend; i++) {
         for (n = 0; n < 5; n++) {
