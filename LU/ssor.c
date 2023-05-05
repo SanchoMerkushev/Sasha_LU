@@ -143,7 +143,7 @@ void ssor(int niter)
 	  for (k = k_start; k < k_end; k++) {
 	     j_start = max(1, pl - k - ISIZ1 + 2);
 	     j_end = min(pl - k, ISIZ1 - 1);
-	    //#pragma acc loop
+	    #pragma acc loop
 	    for (j = j_start; j < j_end; j++) {
 	      i = pl - k - j;
 	      //---------------------------------------------------------------------
@@ -575,7 +575,7 @@ void ssor(int niter)
 	    k_end = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2);
 	    #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts)
 	    for (k = k_start; k >= k_end; k--) {
-	      //#pragma acc loop
+	      #pragma acc loop
 	      j_start = min(62, pl - k - 1);
 	      j_end = max(1, pl - k - ISIZ1 + 2);
 	      for (j = j_start; j >= j_end; j--) {
