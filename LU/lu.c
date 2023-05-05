@@ -78,10 +78,10 @@ double c[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
 double d[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
 
 /* common/cjacu/ */
-double au[ISIZ2][ISIZ1/2*2+1][5][5];
-double bu[ISIZ2][ISIZ1/2*2+1][5][5];
-double cu[ISIZ2][ISIZ1/2*2+1][5][5];
-double du[ISIZ2][ISIZ1/2*2+1][5][5];
+double au[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+double bu[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+double cu[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
+double du[ISIZ1][ISIZ2][ISIZ1/2*2+1][5][5];
 
 
 //---------------------------------------------------------------------
