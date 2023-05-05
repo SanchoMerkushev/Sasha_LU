@@ -101,7 +101,7 @@ void ssor(int niter)
   //---------------------------------------------------------------------
   // the timestep loop
   //---------------------------------------------------------------------
-  //#pragma acc data copy(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:ISIZ1][:5][:5], tv_blts[:ISIZ1][:ISIZ1][:5], tmat_buts[:ISIZ1][:ISIZ1][:5][:5], tv_buts[:ISIZ2][:ISIZ1][:5], delunm[:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
+  #pragma acc data copy(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:ISIZ1][:5][:5], tv_blts[:ISIZ1][:ISIZ1][:5], tmat_buts[:ISIZ1][:ISIZ1][:5][:5], tv_buts[:ISIZ2][:ISIZ1][:5], delunm[:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
   { // DATA START
   //#pragma acc parallel
   //{ // PARALLEL START
