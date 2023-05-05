@@ -41,7 +41,6 @@ void ssor(int niter)
   // begin pseudo-time stepping iterations
   //---------------------------------------------------------------------
   tmp = 1.0 / ( omega * ( 2.0 - omega ) );
-  printf("%d %d\n", jst, jend);
   //---------------------------------------------------------------------
   // initialize a,b,c,d to zero (guarantees that page tables have been
   // formed, if applicable on given architecture, before timestepping).
@@ -102,7 +101,7 @@ void ssor(int niter)
   //---------------------------------------------------------------------
   // the timestep loop
   //---------------------------------------------------------------------
-  #pragma acc data copy(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:ISIZ1][:5][:5], tv_blts[:ISIZ1][:ISIZ1][:5], tmat_buts[:ISIZ1][:ISIZ1][:5][:5], tv_buts[:ISIZ2][:ISIZ1][:5], delunm[:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
+  //#pragma acc data copy(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ1][:ISIZ2][:ISIZ1/2*2+1][:5][:5], tmat_blts[:ISIZ1][:ISIZ1][:5][:5], tv_blts[:ISIZ1][:ISIZ1][:5], tmat_buts[:ISIZ1][:ISIZ1][:5][:5], tv_buts[:ISIZ2][:ISIZ1][:5], delunm[:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
   { // DATA START
   //#pragma acc parallel
   //{ // PARALLEL START
@@ -131,7 +130,6 @@ void ssor(int niter)
       }
     }
     //#pragma omp master
-
     //#pragma omp barrier
     for (pl = 3; pl <= (ISIZ1 - 2) * 3; pl++) {
       //---------------------------------------------------------------------
@@ -435,8 +433,6 @@ void ssor(int niter)
 		             + a[k][j][i][3][m] * rsd[k-1][j][i][3]
 		             + a[k][j][i][4][m] * rsd[k-1][j][i][4] );
 	      }
-	      //if ((k == 1) && (j == 1) && (i == 1))
-	           //printf("AAA %f %f %f\n", rsd[1][1][1][3], rsd[1][1][0][0], rsd[1][0][1][4]);
 	      for (m = 0; m < 5; m++) {
 		tv_blts[k][j][m] =  rsd[k][j][i][m]
 		  - omega * ( b[k][j][i][0][m] * rsd[k][j-1][i][0]
@@ -562,6 +558,7 @@ void ssor(int niter)
     } // end pl first
     
     
+    
     //#pragma omp barrier
     //#pragma acc parallel loop private(k)
     for (pl = 3 * (ISIZ1 - 2); pl >= 3; pl--) {
@@ -572,11 +569,11 @@ void ssor(int niter)
 	  //#pragma omp for schedule(static) nowait
 	  //for (j = jend - 1; j >= jst; j--) {
 	    //for (i = iend - 1; i >= ist; i--) {
-	    k_start = min(62, pl - 2);
+	    k_start = min(ISIZ1 - 2, pl - 2);
 	    k_end = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2);
 	    #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts)
 	    for (k = k_start; k >= k_end; k--) {
-	      j_start = min(62, pl - k - 1);
+	      j_start = min(ISIZ1 - 2, pl - k - 1);
 	      j_end = max(1, pl - k - ISIZ1 + 2);
 	      #pragma acc loop private(k_start, k_end,  i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts)
 	      for (j = j_start; j >= j_end; j--) {
