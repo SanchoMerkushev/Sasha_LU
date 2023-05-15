@@ -24,8 +24,8 @@ void ssor(int niter)
   double tmp, tmp2;
   int k_start, k_end, j_start, j_end;
   double delunm[5];
-  double tmat_blts[5][5], tv_blts[5];
-  double tmat_buts[5][5], tv_buts[ISIZ2][ISIZ1/2*2+1][5];
+  double tmat_blts[ISIZ1][ISIZ1][5][5], tv_blts[ISIZ1][ISIZ1][5];
+  double tmat_buts[ISIZ1][ISIZ1][5][5], tv_buts[ISIZ2][ISIZ1][5];
   double tmp_buts, tmp1_buts;
   double r43;
   double c1345;
@@ -138,11 +138,11 @@ void ssor(int niter)
       // start jacld(k);
           k_start = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2);
           k_end = min(pl - 1, ISIZ1 - 1);
-	  #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp_blts, tmp1_blts, tmp1, tmp2_jacld, tmp3, tmat_blts, tv_blts)
+	  #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp_blts, tmp1_blts, tmp1, tmp2_jacld, tmp3)
 	  for (k = k_start; k < k_end; k++) {
 	     j_start = max(1, pl - k - ISIZ1 + 2);
 	     j_end = min(pl - k, ISIZ1 - 1);
-	    #pragma acc loop private(k_start, k_end, j, i, tmp_blts, tmp1_blts, tmp1, tmp2_jacld, tmp3, tmat_blts, tv_blts)
+	    #pragma acc loop private(k_start, k_end, j, i, tmp_blts, tmp1_blts, tmp1, tmp2_jacld, tmp3)
 	    for (j = j_start; j < j_end; j++) {
 	      i = pl - k - j;
 	      //---------------------------------------------------------------------
@@ -434,7 +434,7 @@ void ssor(int niter)
 		             + a[k][j][i][4][m] * rsd[k-1][j][i][4] );
 	      }
 	      for (m = 0; m < 5; m++) {
-		tv_blts[m] =  rsd[k][j][i][m]
+		tv_blts[k][j][m] =  rsd[k][j][i][m]
 		  - omega * ( b[k][j][i][0][m] * rsd[k][j-1][i][0]
 		            + c[k][j][i][0][m] * rsd[k][j][i-1][0]
 		            + b[k][j][i][1][m] * rsd[k][j-1][i][1]
@@ -452,103 +452,103 @@ void ssor(int niter)
 	      // forward elimination
 	      //---------------------------------------------------------------------
 	      for (m = 0; m < 5; m++) {
-		tmat_blts[m][0] = d[k][j][i][0][m];
-		tmat_blts[m][1] = d[k][j][i][1][m];
-		tmat_blts[m][2] = d[k][j][i][2][m];
-		tmat_blts[m][3] = d[k][j][i][3][m];
-		tmat_blts[m][4] = d[k][j][i][4][m];
+		tmat_blts[k][j][m][0] = d[k][j][i][0][m];
+		tmat_blts[k][j][m][1] = d[k][j][i][1][m];
+		tmat_blts[k][j][m][2] = d[k][j][i][2][m];
+		tmat_blts[k][j][m][3] = d[k][j][i][3][m];
+		tmat_blts[k][j][m][4] = d[k][j][i][4][m];
 	      }
 
-	      tmp1_blts = 1.0 / tmat_blts[0][0];
-	      tmp_blts = tmp1_blts * tmat_blts[1][0];
-	      tmat_blts[1][1] =  tmat_blts[1][1] - tmp_blts * tmat_blts[0][1];
-	      tmat_blts[1][2] =  tmat_blts[1][2] - tmp_blts * tmat_blts[0][2];
-	      tmat_blts[1][3] =  tmat_blts[1][3] - tmp_blts * tmat_blts[0][3];
-	      tmat_blts[1][4] =  tmat_blts[1][4] - tmp_blts * tmat_blts[0][4];
-	      tv_blts[1] = tv_blts[1] - tv_blts[0] * tmp_blts;
+	      tmp1_blts = 1.0 / tmat_blts[k][j][0][0];
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][1][0];
+	      tmat_blts[k][j][1][1] =  tmat_blts[k][j][1][1] - tmp_blts * tmat_blts[k][j][0][1];
+	      tmat_blts[k][j][1][2] =  tmat_blts[k][j][1][2] - tmp_blts * tmat_blts[k][j][0][2];
+	      tmat_blts[k][j][1][3] =  tmat_blts[k][j][1][3] - tmp_blts * tmat_blts[k][j][0][3];
+	      tmat_blts[k][j][1][4] =  tmat_blts[k][j][1][4] - tmp_blts * tmat_blts[k][j][0][4];
+	      tv_blts[k][j][1] = tv_blts[k][j][1] - tv_blts[k][j][0] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[2][0];
-	      tmat_blts[2][1] =  tmat_blts[2][1] - tmp_blts * tmat_blts[0][1];
-	      tmat_blts[2][2] =  tmat_blts[2][2] - tmp_blts * tmat_blts[0][2];
-	      tmat_blts[2][3] =  tmat_blts[2][3] - tmp_blts * tmat_blts[0][3];
-	      tmat_blts[2][4] =  tmat_blts[2][4] - tmp_blts * tmat_blts[0][4];
-	      tv_blts[2] = tv_blts[2] - tv_blts[0] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][2][0];
+	      tmat_blts[k][j][2][1] =  tmat_blts[k][j][2][1] - tmp_blts * tmat_blts[k][j][0][1];
+	      tmat_blts[k][j][2][2] =  tmat_blts[k][j][2][2] - tmp_blts * tmat_blts[k][j][0][2];
+	      tmat_blts[k][j][2][3] =  tmat_blts[k][j][2][3] - tmp_blts * tmat_blts[k][j][0][3];
+	      tmat_blts[k][j][2][4] =  tmat_blts[k][j][2][4] - tmp_blts * tmat_blts[k][j][0][4];
+	      tv_blts[k][j][2] = tv_blts[k][j][2] - tv_blts[k][j][0] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[3][0];
-	      tmat_blts[3][1] =  tmat_blts[3][1] - tmp_blts * tmat_blts[0][1];
-	      tmat_blts[3][2] =  tmat_blts[3][2] - tmp_blts * tmat_blts[0][2];
-	      tmat_blts[3][3] =  tmat_blts[3][3] - tmp_blts * tmat_blts[0][3];
-	      tmat_blts[3][4] =  tmat_blts[3][4] - tmp_blts * tmat_blts[0][4];
-	      tv_blts[3] = tv_blts[3] - tv_blts[0] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][3][0];
+	      tmat_blts[k][j][3][1] =  tmat_blts[k][j][3][1] - tmp_blts * tmat_blts[k][j][0][1];
+	      tmat_blts[k][j][3][2] =  tmat_blts[k][j][3][2] - tmp_blts * tmat_blts[k][j][0][2];
+	      tmat_blts[k][j][3][3] =  tmat_blts[k][j][3][3] - tmp_blts * tmat_blts[k][j][0][3];
+	      tmat_blts[k][j][3][4] =  tmat_blts[k][j][3][4] - tmp_blts * tmat_blts[k][j][0][4];
+	      tv_blts[k][j][3] = tv_blts[k][j][3] - tv_blts[k][j][0] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[4][0];
-	      tmat_blts[4][1] =  tmat_blts[4][1] - tmp_blts * tmat_blts[0][1];
-	      tmat_blts[4][2] =  tmat_blts[4][2] - tmp_blts * tmat_blts[0][2];
-	      tmat_blts[4][3] =  tmat_blts[4][3] - tmp_blts * tmat_blts[0][3];
-	      tmat_blts[4][4] =  tmat_blts[4][4] - tmp_blts * tmat_blts[0][4];
-	      tv_blts[4] = tv_blts[4] - tv_blts[0] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][4][0];
+	      tmat_blts[k][j][4][1] =  tmat_blts[k][j][4][1] - tmp_blts * tmat_blts[k][j][0][1];
+	      tmat_blts[k][j][4][2] =  tmat_blts[k][j][4][2] - tmp_blts * tmat_blts[k][j][0][2];
+	      tmat_blts[k][j][4][3] =  tmat_blts[k][j][4][3] - tmp_blts * tmat_blts[k][j][0][3];
+	      tmat_blts[k][j][4][4] =  tmat_blts[k][j][4][4] - tmp_blts * tmat_blts[k][j][0][4];
+	      tv_blts[k][j][4] = tv_blts[k][j][4] - tv_blts[k][j][0] * tmp_blts;
 
-	      tmp1_blts = 1.0 / tmat_blts[1][1];
-	      tmp_blts = tmp1_blts * tmat_blts[2][1];
-	      tmat_blts[2][2] =  tmat_blts[2][2] - tmp_blts * tmat_blts[1][2];
-	      tmat_blts[2][3] =  tmat_blts[2][3] - tmp_blts * tmat_blts[1][3];
-	      tmat_blts[2][4] =  tmat_blts[2][4] - tmp_blts * tmat_blts[1][4];
-	      tv_blts[2] = tv_blts[2] - tv_blts[1] * tmp_blts;
+	      tmp1_blts = 1.0 / tmat_blts[k][j][1][1];
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][2][1];
+	      tmat_blts[k][j][2][2] =  tmat_blts[k][j][2][2] - tmp_blts * tmat_blts[k][j][1][2];
+	      tmat_blts[k][j][2][3] =  tmat_blts[k][j][2][3] - tmp_blts * tmat_blts[k][j][1][3];
+	      tmat_blts[k][j][2][4] =  tmat_blts[k][j][2][4] - tmp_blts * tmat_blts[k][j][1][4];
+	      tv_blts[k][j][2] = tv_blts[k][j][2] - tv_blts[k][j][1] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[3][1];
-	      tmat_blts[3][2] =  tmat_blts[3][2] - tmp_blts * tmat_blts[1][2];
-	      tmat_blts[3][3] =  tmat_blts[3][3] - tmp_blts * tmat_blts[1][3];
-	      tmat_blts[3][4] =  tmat_blts[3][4] - tmp_blts * tmat_blts[1][4];
-	      tv_blts[3] = tv_blts[3] - tv_blts[1] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][3][1];
+	      tmat_blts[k][j][3][2] =  tmat_blts[k][j][3][2] - tmp_blts * tmat_blts[k][j][1][2];
+	      tmat_blts[k][j][3][3] =  tmat_blts[k][j][3][3] - tmp_blts * tmat_blts[k][j][1][3];
+	      tmat_blts[k][j][3][4] =  tmat_blts[k][j][3][4] - tmp_blts * tmat_blts[k][j][1][4];
+	      tv_blts[k][j][3] = tv_blts[k][j][3] - tv_blts[k][j][1] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[4][1];
-	      tmat_blts[4][2] =  tmat_blts[4][2] - tmp_blts * tmat_blts[1][2];
-	      tmat_blts[4][3] =  tmat_blts[4][3] - tmp_blts * tmat_blts[1][3];
-	      tmat_blts[4][4] =  tmat_blts[4][4] - tmp_blts * tmat_blts[1][4];
-	      tv_blts[4] = tv_blts[4] - tv_blts[1] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][4][1];
+	      tmat_blts[k][j][4][2] =  tmat_blts[k][j][4][2] - tmp_blts * tmat_blts[k][j][1][2];
+	      tmat_blts[k][j][4][3] =  tmat_blts[k][j][4][3] - tmp_blts * tmat_blts[k][j][1][3];
+	      tmat_blts[k][j][4][4] =  tmat_blts[k][j][4][4] - tmp_blts * tmat_blts[k][j][1][4];
+	      tv_blts[k][j][4] = tv_blts[k][j][4] - tv_blts[k][j][1] * tmp_blts;
 
-	      tmp1_blts = 1.0 / tmat_blts[2][2];
-	      tmp_blts = tmp1_blts * tmat_blts[3][2];
-	      tmat_blts[3][3] =  tmat_blts[3][3] - tmp_blts * tmat_blts[2][3];
-	      tmat_blts[3][4] =  tmat_blts[3][4] - tmp_blts * tmat_blts[2][4];
-	      tv_blts[3] = tv_blts[3] - tv_blts[2] * tmp_blts;
+	      tmp1_blts = 1.0 / tmat_blts[k][j][2][2];
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][3][2];
+	      tmat_blts[k][j][3][3] =  tmat_blts[k][j][3][3] - tmp_blts * tmat_blts[k][j][2][3];
+	      tmat_blts[k][j][3][4] =  tmat_blts[k][j][3][4] - tmp_blts * tmat_blts[k][j][2][4];
+	      tv_blts[k][j][3] = tv_blts[k][j][3] - tv_blts[k][j][2] * tmp_blts;
 
-	      tmp_blts = tmp1_blts * tmat_blts[4][2];
-	      tmat_blts[4][3] =  tmat_blts[4][3] - tmp_blts * tmat_blts[2][3];
-	      tmat_blts[4][4] =  tmat_blts[4][4] - tmp_blts * tmat_blts[2][4];
-	      tv_blts[4] = tv_blts[4] - tv_blts[2] * tmp_blts;
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][4][2];
+	      tmat_blts[k][j][4][3] =  tmat_blts[k][j][4][3] - tmp_blts * tmat_blts[k][j][2][3];
+	      tmat_blts[k][j][4][4] =  tmat_blts[k][j][4][4] - tmp_blts * tmat_blts[k][j][2][4];
+	      tv_blts[k][j][4] = tv_blts[k][j][4] - tv_blts[k][j][2] * tmp_blts;
 
-	      tmp1_blts = 1.0 / tmat_blts[3][3];
-	      tmp_blts = tmp1_blts * tmat_blts[4][3];
-	      tmat_blts[4][4] =  tmat_blts[4][4] - tmp_blts * tmat_blts[3][4];
-	      tv_blts[4] = tv_blts[4] - tv_blts[3] * tmp_blts;
+	      tmp1_blts = 1.0 / tmat_blts[k][j][3][3];
+	      tmp_blts = tmp1_blts * tmat_blts[k][j][4][3];
+	      tmat_blts[k][j][4][4] =  tmat_blts[k][j][4][4] - tmp_blts * tmat_blts[k][j][3][4];
+	      tv_blts[k][j][4] = tv_blts[k][j][4] - tv_blts[k][j][3] * tmp_blts;
 
 	      //---------------------------------------------------------------------
 	      // back substitution
 	      //---------------------------------------------------------------------
-	      rsd[k][j][i][4] = tv_blts[4] / tmat_blts[4][4];
+	      rsd[k][j][i][4] = tv_blts[k][j][4] / tmat_blts[k][j][4][4];
 
-	      tv_blts[3] = tv_blts[3] 
-		- tmat_blts[3][4] * rsd[k][j][i][4];
-	      rsd[k][j][i][3] = tv_blts[3] / tmat_blts[3][3];
+	      tv_blts[k][j][3] = tv_blts[k][j][3] 
+		- tmat_blts[k][j][3][4] * rsd[k][j][i][4];
+	      rsd[k][j][i][3] = tv_blts[k][j][3] / tmat_blts[k][j][3][3];
 
-	      tv_blts[2] = tv_blts[2]
-		- tmat_blts[2][3] * rsd[k][j][i][3]
-		- tmat_blts[2][4] * rsd[k][j][i][4];
-	      rsd[k][j][i][2] = tv_blts[2] / tmat_blts[2][2];
+	      tv_blts[k][j][2] = tv_blts[k][j][2]
+		- tmat_blts[k][j][2][3] * rsd[k][j][i][3]
+		- tmat_blts[k][j][2][4] * rsd[k][j][i][4];
+	      rsd[k][j][i][2] = tv_blts[k][j][2] / tmat_blts[k][j][2][2];
 
-	      tv_blts[1] = tv_blts[1]
-		- tmat_blts[1][2] * rsd[k][j][i][2]
-		- tmat_blts[1][3] * rsd[k][j][i][3]
-		- tmat_blts[1][4] * rsd[k][j][i][4];
-	      rsd[k][j][i][1] = tv_blts[1] / tmat_blts[1][1];
+	      tv_blts[k][j][1] = tv_blts[k][j][1]
+		- tmat_blts[k][j][1][2] * rsd[k][j][i][2]
+		- tmat_blts[k][j][1][3] * rsd[k][j][i][3]
+		- tmat_blts[k][j][1][4] * rsd[k][j][i][4];
+	      rsd[k][j][i][1] = tv_blts[k][j][1] / tmat_blts[k][j][1][1];
 
-	      tv_blts[0] = tv_blts[0]
-		- tmat_blts[0][1] * rsd[k][j][i][1]
-		- tmat_blts[0][2] * rsd[k][j][i][2]
-		- tmat_blts[0][3] * rsd[k][j][i][3]
-		- tmat_blts[0][4] * rsd[k][j][i][4];
-	      rsd[k][j][i][0] = tv_blts[0] / tmat_blts[0][0];
+	      tv_blts[k][j][0] = tv_blts[k][j][0]
+		- tmat_blts[k][j][0][1] * rsd[k][j][i][1]
+		- tmat_blts[k][j][0][2] * rsd[k][j][i][2]
+		- tmat_blts[k][j][0][3] * rsd[k][j][i][3]
+		- tmat_blts[k][j][0][4] * rsd[k][j][i][4];
+	      rsd[k][j][i][0] = tv_blts[k][j][0] / tmat_blts[k][j][0][0];
 	      //if ((k == 1) && (j == 1) && (i == 1))
 	           //printf("BBB %f %f %f\n", rsd[1][1][1][3], rsd[1][1][0][0], rsd[1][0][1][4]);
 	      //end blts
@@ -571,11 +571,11 @@ void ssor(int niter)
 	    //for (i = iend - 1; i >= ist; i--) {
 	    k_start = min(ISIZ1 - 2, pl - 2);
 	    k_end = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2);
-	    #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts, tmat_buts, tv_buts)
+	    #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts)
 	    for (k = k_start; k >= k_end; k--) {
 	      j_start = min(ISIZ1 - 2, pl - k - 1);
 	      j_end = max(1, pl - k - ISIZ1 + 2);
-	      #pragma acc loop private(k_start, k_end,  i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts, tmat_buts, tv_buts)
+	      #pragma acc loop private(k_start, k_end,  i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts)
 	      for (j = j_start; j >= j_end; j--) {
 	      i = pl - k - j;
 	      //---------------------------------------------------------------------t 
@@ -904,102 +904,102 @@ void ssor(int niter)
 	      // diagonal block inversion
 	      //---------------------------------------------------------------------
 	      for (m = 0; m < 5; m++) {
-		tmat_buts[m][0] = du[k][j][i][0][m];
-		tmat_buts[m][1] = du[k][j][i][1][m];
-		tmat_buts[m][2] = du[k][j][i][2][m];
-		tmat_buts[m][3] = du[k][j][i][3][m];
-		tmat_buts[m][4] = du[k][j][i][4][m];
+		tmat_buts[k][j][m][0] = du[k][j][i][0][m];
+		tmat_buts[k][j][m][1] = du[k][j][i][1][m];
+		tmat_buts[k][j][m][2] = du[k][j][i][2][m];
+		tmat_buts[k][j][m][3] = du[k][j][i][3][m];
+		tmat_buts[k][j][m][4] = du[k][j][i][4][m];
 	      }
 
-	      tmp1_buts = 1.0 / tmat_buts[0][0];
-	      tmp_buts = tmp1_buts * tmat_buts[1][0];
-	      tmat_buts[1][1] =  tmat_buts[1][1] - tmp_buts * tmat_buts[0][1];
-	      tmat_buts[1][2] =  tmat_buts[1][2] - tmp_buts * tmat_buts[0][2];
-	      tmat_buts[1][3] =  tmat_buts[1][3] - tmp_buts * tmat_buts[0][3];
-	      tmat_buts[1][4] =  tmat_buts[1][4] - tmp_buts * tmat_buts[0][4];
+	      tmp1_buts = 1.0 / tmat_buts[k][j][0][0];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][1][0];
+	      tmat_buts[k][j][1][1] =  tmat_buts[k][j][1][1] - tmp_buts * tmat_buts[k][j][0][1];
+	      tmat_buts[k][j][1][2] =  tmat_buts[k][j][1][2] - tmp_buts * tmat_buts[k][j][0][2];
+	      tmat_buts[k][j][1][3] =  tmat_buts[k][j][1][3] - tmp_buts * tmat_buts[k][j][0][3];
+	      tmat_buts[k][j][1][4] =  tmat_buts[k][j][1][4] - tmp_buts * tmat_buts[k][j][0][4];
 	      tv_buts[j][i][1] = tv_buts[j][i][1] - tv_buts[j][i][0] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[2][0];
-	      tmat_buts[2][1] =  tmat_buts[2][1] - tmp_buts * tmat_buts[0][1];
-	      tmat_buts[2][2] =  tmat_buts[2][2] - tmp_buts * tmat_buts[0][2];
-	      tmat_buts[2][3] =  tmat_buts[2][3] - tmp_buts * tmat_buts[0][3];
-	      tmat_buts[2][4] =  tmat_buts[2][4] - tmp_buts * tmat_buts[0][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][2][0];
+	      tmat_buts[k][j][2][1] =  tmat_buts[k][j][2][1] - tmp_buts * tmat_buts[k][j][0][1];
+	      tmat_buts[k][j][2][2] =  tmat_buts[k][j][2][2] - tmp_buts * tmat_buts[k][j][0][2];
+	      tmat_buts[k][j][2][3] =  tmat_buts[k][j][2][3] - tmp_buts * tmat_buts[k][j][0][3];
+	      tmat_buts[k][j][2][4] =  tmat_buts[k][j][2][4] - tmp_buts * tmat_buts[k][j][0][4];
 	      tv_buts[j][i][2] = tv_buts[j][i][2] - tv_buts[j][i][0] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[3][0];
-	      tmat_buts[3][1] =  tmat_buts[3][1] - tmp_buts * tmat_buts[0][1];
-	      tmat_buts[3][2] =  tmat_buts[3][2] - tmp_buts * tmat_buts[0][2];
-	      tmat_buts[3][3] =  tmat_buts[3][3] - tmp_buts * tmat_buts[0][3];
-	      tmat_buts[3][4] =  tmat_buts[3][4] - tmp_buts * tmat_buts[0][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][3][0];
+	      tmat_buts[k][j][3][1] =  tmat_buts[k][j][3][1] - tmp_buts * tmat_buts[k][j][0][1];
+	      tmat_buts[k][j][3][2] =  tmat_buts[k][j][3][2] - tmp_buts * tmat_buts[k][j][0][2];
+	      tmat_buts[k][j][3][3] =  tmat_buts[k][j][3][3] - tmp_buts * tmat_buts[k][j][0][3];
+	      tmat_buts[k][j][3][4] =  tmat_buts[k][j][3][4] - tmp_buts * tmat_buts[k][j][0][4];
 	      tv_buts[j][i][3] = tv_buts[j][i][3] - tv_buts[j][i][0] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[4][0];
-	      tmat_buts[4][1] =  tmat_buts[4][1] - tmp_buts * tmat_buts[0][1];
-	      tmat_buts[4][2] =  tmat_buts[4][2] - tmp_buts * tmat_buts[0][2];
-	      tmat_buts[4][3] =  tmat_buts[4][3] - tmp_buts * tmat_buts[0][3];
-	      tmat_buts[4][4] =  tmat_buts[4][4] - tmp_buts * tmat_buts[0][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][4][0];
+	      tmat_buts[k][j][4][1] =  tmat_buts[k][j][4][1] - tmp_buts * tmat_buts[k][j][0][1];
+	      tmat_buts[k][j][4][2] =  tmat_buts[k][j][4][2] - tmp_buts * tmat_buts[k][j][0][2];
+	      tmat_buts[k][j][4][3] =  tmat_buts[k][j][4][3] - tmp_buts * tmat_buts[k][j][0][3];
+	      tmat_buts[k][j][4][4] =  tmat_buts[k][j][4][4] - tmp_buts * tmat_buts[k][j][0][4];
 	      tv_buts[j][i][4] = tv_buts[j][i][4] - tv_buts[j][i][0] * tmp_buts;
 
-	      tmp1_buts = 1.0 / tmat_buts[1][1];
-	      tmp_buts = tmp1_buts * tmat_buts[2][1];
-	      tmat_buts[2][2] =  tmat_buts[2][2] - tmp_buts * tmat_buts[1][2];
-	      tmat_buts[2][3] =  tmat_buts[2][3] - tmp_buts * tmat_buts[1][3];
-	      tmat_buts[2][4] =  tmat_buts[2][4] - tmp_buts * tmat_buts[1][4];
+	      tmp1_buts = 1.0 / tmat_buts[k][j][1][1];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][2][1];
+	      tmat_buts[k][j][2][2] =  tmat_buts[k][j][2][2] - tmp_buts * tmat_buts[k][j][1][2];
+	      tmat_buts[k][j][2][3] =  tmat_buts[k][j][2][3] - tmp_buts * tmat_buts[k][j][1][3];
+	      tmat_buts[k][j][2][4] =  tmat_buts[k][j][2][4] - tmp_buts * tmat_buts[k][j][1][4];
 	      tv_buts[j][i][2] = tv_buts[j][i][2] - tv_buts[j][i][1] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[3][1];
-	      tmat_buts[3][2] =  tmat_buts[3][2] - tmp_buts * tmat_buts[1][2];
-	      tmat_buts[3][3] =  tmat_buts[3][3] - tmp_buts * tmat_buts[1][3];
-	      tmat_buts[3][4] =  tmat_buts[3][4] - tmp_buts * tmat_buts[1][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][3][1];
+	      tmat_buts[k][j][3][2] =  tmat_buts[k][j][3][2] - tmp_buts * tmat_buts[k][j][1][2];
+	      tmat_buts[k][j][3][3] =  tmat_buts[k][j][3][3] - tmp_buts * tmat_buts[k][j][1][3];
+	      tmat_buts[k][j][3][4] =  tmat_buts[k][j][3][4] - tmp_buts * tmat_buts[k][j][1][4];
 	      tv_buts[j][i][3] = tv_buts[j][i][3] - tv_buts[j][i][1] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[4][1];
-	      tmat_buts[4][2] =  tmat_buts[4][2] - tmp_buts * tmat_buts[1][2];
-	      tmat_buts[4][3] =  tmat_buts[4][3] - tmp_buts * tmat_buts[1][3];
-	      tmat_buts[4][4] =  tmat_buts[4][4] - tmp_buts * tmat_buts[1][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][4][1];
+	      tmat_buts[k][j][4][2] =  tmat_buts[k][j][4][2] - tmp_buts * tmat_buts[k][j][1][2];
+	      tmat_buts[k][j][4][3] =  tmat_buts[k][j][4][3] - tmp_buts * tmat_buts[k][j][1][3];
+	      tmat_buts[k][j][4][4] =  tmat_buts[k][j][4][4] - tmp_buts * tmat_buts[k][j][1][4];
 	      tv_buts[j][i][4] = tv_buts[j][i][4] - tv_buts[j][i][1] * tmp_buts;
 
-	      tmp1_buts = 1.0 / tmat_buts[2][2];
-	      tmp_buts = tmp1_buts * tmat_buts[3][2];
-	      tmat_buts[3][3] =  tmat_buts[3][3] - tmp_buts * tmat_buts[2][3];
-	      tmat_buts[3][4] =  tmat_buts[3][4] - tmp_buts * tmat_buts[2][4];
+	      tmp1_buts = 1.0 / tmat_buts[k][j][2][2];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][3][2];
+	      tmat_buts[k][j][3][3] =  tmat_buts[k][j][3][3] - tmp_buts * tmat_buts[k][j][2][3];
+	      tmat_buts[k][j][3][4] =  tmat_buts[k][j][3][4] - tmp_buts * tmat_buts[k][j][2][4];
 	      tv_buts[j][i][3] = tv_buts[j][i][3] - tv_buts[j][i][2] * tmp_buts;
 
-	      tmp_buts = tmp1_buts * tmat_buts[4][2];
-	      tmat_buts[4][3] =  tmat_buts[4][3] - tmp_buts * tmat_buts[2][3];
-	      tmat_buts[4][4] =  tmat_buts[4][4] - tmp_buts * tmat_buts[2][4];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][4][2];
+	      tmat_buts[k][j][4][3] =  tmat_buts[k][j][4][3] - tmp_buts * tmat_buts[k][j][2][3];
+	      tmat_buts[k][j][4][4] =  tmat_buts[k][j][4][4] - tmp_buts * tmat_buts[k][j][2][4];
 	      tv_buts[j][i][4] = tv_buts[j][i][4] - tv_buts[j][i][2] * tmp_buts;
 
-	      tmp1_buts = 1.0 / tmat_buts[3][3];
-	      tmp_buts = tmp1_buts * tmat_buts[4][3];
-	      tmat_buts[4][4] =  tmat_buts[4][4] - tmp_buts * tmat_buts[3][4];
+	      tmp1_buts = 1.0 / tmat_buts[k][j][3][3];
+	      tmp_buts = tmp1_buts * tmat_buts[k][j][4][3];
+	      tmat_buts[k][j][4][4] =  tmat_buts[k][j][4][4] - tmp_buts * tmat_buts[k][j][3][4];
 	      tv_buts[j][i][4] = tv_buts[j][i][4] - tv_buts[j][i][3] * tmp_buts;
 
 	      //---------------------------------------------------------------------
 	      // back substitution
 	      //---------------------------------------------------------------------
-	      tv_buts[j][i][4] = tv_buts[j][i][4] / tmat_buts[4][4];
+	      tv_buts[j][i][4] = tv_buts[j][i][4] / tmat_buts[k][j][4][4];
 
-	      tv_buts[j][i][3] = tv_buts[j][i][3] - tmat_buts[3][4] * tv_buts[j][i][4];
-	      tv_buts[j][i][3] = tv_buts[j][i][3] / tmat_buts[3][3];
+	      tv_buts[j][i][3] = tv_buts[j][i][3] - tmat_buts[k][j][3][4] * tv_buts[j][i][4];
+	      tv_buts[j][i][3] = tv_buts[j][i][3] / tmat_buts[k][j][3][3];
 
 	      tv_buts[j][i][2] = tv_buts[j][i][2]
-		- tmat_buts[2][3] * tv_buts[j][i][3]
-		- tmat_buts[2][4] * tv_buts[j][i][4];
-	      tv_buts[j][i][2] = tv_buts[j][i][2] / tmat_buts[2][2];
+		- tmat_buts[k][j][2][3] * tv_buts[j][i][3]
+		- tmat_buts[k][j][2][4] * tv_buts[j][i][4];
+	      tv_buts[j][i][2] = tv_buts[j][i][2] / tmat_buts[k][j][2][2];
 
 	      tv_buts[j][i][1] = tv_buts[j][i][1]
-		- tmat_buts[1][2] * tv_buts[j][i][2]
-		- tmat_buts[1][3] * tv_buts[j][i][3]
-		- tmat_buts[1][4] * tv_buts[j][i][4];
-	      tv_buts[j][i][1] = tv_buts[j][i][1] / tmat_buts[1][1];
+		- tmat_buts[k][j][1][2] * tv_buts[j][i][2]
+		- tmat_buts[k][j][1][3] * tv_buts[j][i][3]
+		- tmat_buts[k][j][1][4] * tv_buts[j][i][4];
+	      tv_buts[j][i][1] = tv_buts[j][i][1] / tmat_buts[k][j][1][1];
 
 	      tv_buts[j][i][0] = tv_buts[j][i][0]
-		- tmat_buts[0][1] * tv_buts[j][i][1]
-		- tmat_buts[0][2] * tv_buts[j][i][2]
-		- tmat_buts[0][3] * tv_buts[j][i][3]
-		- tmat_buts[0][4] * tv_buts[j][i][4];
-	      tv_buts[j][i][0] = tv_buts[j][i][0] / tmat_buts[0][0];
+		- tmat_buts[k][j][0][1] * tv_buts[j][i][1]
+		- tmat_buts[k][j][0][2] * tv_buts[j][i][2]
+		- tmat_buts[k][j][0][3] * tv_buts[j][i][3]
+		- tmat_buts[k][j][0][4] * tv_buts[j][i][4];
+	      tv_buts[j][i][0] = tv_buts[j][i][0] / tmat_buts[k][j][0][0];
 
 	      rsd[k][j][i][0] = rsd[k][j][i][0] - tv_buts[j][i][0];
 	      rsd[k][j][i][1] = rsd[k][j][i][1] - tv_buts[j][i][1];
