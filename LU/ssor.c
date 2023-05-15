@@ -138,7 +138,7 @@ void ssor(int niter)
       // start jacld(k);
           k_start = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2);
           k_end = min(pl - 1, ISIZ1 - 1);
-	  #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp_blts, tmp1_blts, tmp1, tmp2_jacld, tmp3)
+	  #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp_blts, tmp1_blts, tmp1, tmp2_jacld, tmp3, tmat_blts, tv_blts)
 	  for (k = k_start; k < k_end; k++) {
 	     j_start = max(1, pl - k - ISIZ1 + 2);
 	     j_end = min(pl - k, ISIZ1 - 1);
@@ -571,7 +571,7 @@ void ssor(int niter)
 	    //for (i = iend - 1; i >= ist; i--) {
 	    k_start = min(ISIZ1 - 2, pl - 2);
 	    k_end = max(1, pl - ISIZ1 + 2 - ISIZ1 + 2);
-	    #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts)
+	    #pragma acc parallel loop private(k, j_start, j_end, k_start, k_end, j, i, tmp1_jacu, tmp2_jacu, tmp3_jacu, tmp_buts, tmp1_buts, tmat_buts, tv_buts)
 	    for (k = k_start; k >= k_end; k--) {
 	      j_start = min(ISIZ1 - 2, pl - k - 1);
 	      j_end = max(1, pl - k - ISIZ1 + 2);
