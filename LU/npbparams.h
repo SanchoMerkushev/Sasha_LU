@@ -1,4 +1,4 @@
-/* CLASS = C */
+/* CLASS = B */
 /*
    This file is generated automatically by the setparams utility.
    It sets the number of processors and the class of the NPB
@@ -6,9 +6,9 @@
 */
 
 /* full problem size */
-#define ISIZ1  162
-#define ISIZ2  162
-#define ISIZ3  162
+#define ISIZ1  102
+#define ISIZ2  102
+#define ISIZ3  102
 
 /* number of iterations and how often to print the norm */
 #define ITMAX_DEFAULT  250
