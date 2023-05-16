@@ -19,9 +19,8 @@ void jacu(int k)
   c34 = C3 * C4;
 
   //#pragma omp for schedule(static) nowait
-  #pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3)
-   //data copy(au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
-  //copyin(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
+  #pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3) \
+    data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
   for (j = jend - 1; j >= jst; j--) {
     for (i = iend - 1; i >= ist; i--) {
       //---------------------------------------------------------------------

@@ -18,9 +18,8 @@ void jacld(int k)
   c1345 = C1 * C3 * C4 * C5;
   c34 = C3 * C4;
   //#pragma omp for schedule(static) nowait
-  #pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3) 
-  //data copy(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
-  //copyin(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5])
+  #pragma acc parallel loop private(j, i, tmp1, tmp2, tmp3) \
+  data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
   for (j = jst; j < jend; j++) {
     for (i = ist; i < iend; i++) {
       //---------------------------------------------------------------------
