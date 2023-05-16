@@ -16,7 +16,7 @@
 #define DT_DEFAULT     2.0
 
 #define CONVERTDOUBLE  false
-#define COMPILETIME "15 May 2023"
+#define COMPILETIME "16 May 2023"
 #define NPBVERSION "3.3.1"
 #define CS1 "nvc"
 #define CS2 "$(CC)"
