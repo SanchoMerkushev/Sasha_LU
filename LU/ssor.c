@@ -16,6 +16,7 @@
 //---------------------------------------------------------------------
 void ssor(int niter)
 {
+   printf("size begin ssor %d %d %d\n", ISIZ1, ISIZ2, ISIZ3);
   //---------------------------------------------------------------------
   // local variables
   //---------------------------------------------------------------------
@@ -37,6 +38,7 @@ void ssor(int niter)
   double tmp1_jacu, tmp2_jacu, tmp3_jacu;
   //int diag, t;
   double tmp_blts, tmp1_blts;
+  printf("after var %d %d %d\n", ISIZ1, ISIZ2, ISIZ3);
   //---------------------------------------------------------------------
   // begin pseudo-time stepping iterations
   //---------------------------------------------------------------------

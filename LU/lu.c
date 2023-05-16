@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
   //---------------------------------------------------------------------
   // perform one SSOR iteration to touch all data pages
   //---------------------------------------------------------------------
-  printf("size %d %d %d\n", ISIZ1, ISIZ2, ISIZ3);
+  printf("size before ssor %d %d %d\n", ISIZ1, ISIZ2, ISIZ3);
   ssor(1);
 
   //---------------------------------------------------------------------
