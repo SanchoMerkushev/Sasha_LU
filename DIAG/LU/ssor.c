@@ -1,3 +1,37 @@
+//-------------------------------------------------------------------------//
+//                                                                         //
+//  This benchmark is an OpenMP C version of the NPB LU code. This OpenMP  //
+//  C version is developed by the Center for Manycore Programming at Seoul //
+//  National University and derived from the OpenMP Fortran versions in    //
+//  "NPB3.3-OMP" developed by NAS.                                         //
+//                                                                         //
+//  Permission to use, copy, distribute and modify this software for any   //
+//  purpose with or without fee is hereby granted. This software is        //
+//  provided "as is" without express or implied warranty.                  //
+//                                                                         //
+//  Information on NPB 3.3, including the technical report, the original   //
+//  specifications, source code, results and information on how to submit  //
+//  new results, is available at:                                          //
+//                                                                         //
+//           http://www.nas.nasa.gov/Software/NPB/                         //
+//                                                                         //
+//  Send comments or suggestions for this OpenMP C version to              //
+//  cmp@aces.snu.ac.kr                                                     //
+//                                                                         //
+//          Center for Manycore Programming                                //
+//          School of Computer Science and Engineering                     //
+//          Seoul National University                                      //
+//          Seoul 151-744, Korea                                           //
+//                                                                         //
+//          E-mail:  cmp@aces.snu.ac.kr                                    //
+//                                                                         //
+//-------------------------------------------------------------------------//
+
+//-------------------------------------------------------------------------//
+// Authors: Sangmin Seo, Jungwon Kim, Jun Lee, Jeongho Nah, Gangwon Jo,    //
+//          and Jaejin Lee                                                 //
+//-------------------------------------------------------------------------//
+
 #include <stdio.h>
 #ifdef _OPENMP
 #include <omp.h>
@@ -90,7 +124,6 @@ void ssor(int niter)
   //---------------------------------------------------------------------
   // the timestep loop
   //---------------------------------------------------------------------
-  // MAIN START
   for (istep = 1; istep <= niter; istep++) {
     if ((istep % 20) == 0 || istep == itmax || istep == 1) {
       if (niter > 1) printf(" Time step %4d\n", istep);
@@ -119,13 +152,13 @@ void ssor(int niter)
     if (timeron) timer_stop(t_rhs);
 
     mthreadnum = 0;
-    //mthreadnum = omp_get_num_threads() - 1;
+    mthreadnum = omp_get_num_threads() - 1;
     if (mthreadnum > jend - jst) mthreadnum = jend - jst;
     iam = 0;
-    //iam = omp_get_thread_num();
+    iam = omp_get_thread_num();
     if (iam <= mthreadnum) isync[iam] = 0;
-    //#pragma omp barrier
-    #pragma acc data copy(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
+    #pragma omp barrier
+
     for (k = 1; k < nz -1; k++) {
       //---------------------------------------------------------------------
       // form the lower triangular part of the jacobian matrix
@@ -133,555 +166,6 @@ void ssor(int niter)
       //#pragma omp master
       if (timeron) timer_start(t_jacld);
       jacld(k);
-      //
-      //#pragma omp master
-      {
-      if (timeron) timer_stop(t_jacld);
-
-      //---------------------------------------------------------------------
-      // perform the lower triangular solution
-      //---------------------------------------------------------------------
-      if (timeron) timer_start(t_blts);
-      }
-      //blts( ISIZ1, ISIZ2, ISIZ3,
-      //      nx, ny, nz, k,
-      //      omega,
-      //      rsd, 
-      //      a, b, c, d,
-      //      ist, iend, jst, jend, 
-      //      nx0, ny0 );
-    int ldmx = ISIZ1, ldmy = ISIZ2, ldmz = ISIZ3;
-{
-  // v->rsd ldz->a, ldy->b, ldx->c, d->d
-  //---------------------------------------------------------------------
-  // local variables
-  //---------------------------------------------------------------------
-  int i, j, m, diag, t;
-  double tmp, tmp1;  
-  double tmat[ISIZ1][5][5], tv[ISIZ1][5];
-
-  //sync_left( ldmx, ldmy, ldmz, v );
-
-  //double (*vk)[ldmx/2*2+1][5] = rsd[k];
-  //double (*rsd[k]m1)[ldmx/2*2+1][5] = rsd[k-1];
-
-
-  //#pragma omp for schedule(static) nowait
-  #pragma acc parallel loop private(i, j, m)
-  for (j = jst; j < jend; j++) {
-    for (i = ist; i < iend; i++) {
-      for (m = 0; m < 5; m++) {
-        rsd[k][j][i][m] =  rsd[k][j][i][m]
-          - omega * (  a[j][i][0][m] * rsd[k-1][j][i][0]
-                     + a[j][i][1][m] * rsd[k-1][j][i][1]
-                     + a[j][i][2][m] * rsd[k-1][j][i][2]
-                     + a[j][i][3][m] * rsd[k-1][j][i][3]
-                     + a[j][i][4][m] * rsd[k-1][j][i][4] );
-      }
-    }
-  }
-
-
-  //#pragma omp for schedule(static) nowait
-  #pragma acc data create(tmat[:ISIZ1][:5][:5], tv[:ISIZ1][:5])
-  for (diag = jst; diag < jend; diag++) {
-    #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
-    for (t = 0; t <= diag - jst; t++) {
-      j = diag - t;
-      i = jst + t;
-      for (m = 0; m < 5; m++) {
-        tv[j][m] =  rsd[k][j][i][m]
-          - omega * ( b[j][i][0][m] * rsd[k][j-1][i][0]
-                    + c[j][i][0][m] * rsd[k][j][i-1][0]
-                    + b[j][i][1][m] * rsd[k][j-1][i][1]
-                    + c[j][i][1][m] * rsd[k][j][i-1][1]
-                    + b[j][i][2][m] * rsd[k][j-1][i][2]
-                    + c[j][i][2][m] * rsd[k][j][i-1][2]
-                    + b[j][i][3][m] * rsd[k][j-1][i][3]
-                    + c[j][i][3][m] * rsd[k][j][i-1][3]
-                    + b[j][i][4][m] * rsd[k][j-1][i][4]
-                    + c[j][i][4][m] * rsd[k][j][i-1][4] );
-      }
-
-      //---------------------------------------------------------------------
-      // diagonal block inversion
-      // 
-      // forward elimination
-      //---------------------------------------------------------------------
-      for (m = 0; m < 5; m++) {
-        tmat[j][m][0] = d[j][i][0][m];
-        tmat[j][m][1] = d[j][i][1][m];
-        tmat[j][m][2] = d[j][i][2][m];
-        tmat[j][m][3] = d[j][i][3][m];
-        tmat[j][m][4] = d[j][i][4][m];
-      }
-
-      tmp1 = 1.0 / tmat[j][0][0];
-      tmp = tmp1 * tmat[j][1][0];
-      tmat[j][1][1] =  tmat[j][1][1] - tmp * tmat[j][0][1];
-      tmat[j][1][2] =  tmat[j][1][2] - tmp * tmat[j][0][2];
-      tmat[j][1][3] =  tmat[j][1][3] - tmp * tmat[j][0][3];
-      tmat[j][1][4] =  tmat[j][1][4] - tmp * tmat[j][0][4];
-      tv[j][1] = tv[j][1] - tv[j][0] * tmp;
-
-      tmp = tmp1 * tmat[j][2][0];
-      tmat[j][2][1] =  tmat[j][2][1] - tmp * tmat[j][0][1];
-      tmat[j][2][2] =  tmat[j][2][2] - tmp * tmat[j][0][2];
-      tmat[j][2][3] =  tmat[j][2][3] - tmp * tmat[j][0][3];
-      tmat[j][2][4] =  tmat[j][2][4] - tmp * tmat[j][0][4];
-      tv[j][2] = tv[j][2] - tv[j][0] * tmp;
-
-      tmp = tmp1 * tmat[j][3][0];
-      tmat[j][3][1] =  tmat[j][3][1] - tmp * tmat[j][0][1];
-      tmat[j][3][2] =  tmat[j][3][2] - tmp * tmat[j][0][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][0][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][0][4];
-      tv[j][3] = tv[j][3] - tv[j][0] * tmp;
-
-      tmp = tmp1 * tmat[j][4][0];
-      tmat[j][4][1] =  tmat[j][4][1] - tmp * tmat[j][0][1];
-      tmat[j][4][2] =  tmat[j][4][2] - tmp * tmat[j][0][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][0][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][0][4];
-      tv[j][4] = tv[j][4] - tv[j][0] * tmp;
-
-      tmp1 = 1.0 / tmat[j][1][1];
-      tmp = tmp1 * tmat[j][2][1];
-      tmat[j][2][2] =  tmat[j][2][2] - tmp * tmat[j][1][2];
-      tmat[j][2][3] =  tmat[j][2][3] - tmp * tmat[j][1][3];
-      tmat[j][2][4] =  tmat[j][2][4] - tmp * tmat[j][1][4];
-      tv[j][2] = tv[j][2] - tv[j][1] * tmp;
-
-      tmp = tmp1 * tmat[j][3][1];
-      tmat[j][3][2] =  tmat[j][3][2] - tmp * tmat[j][1][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][1][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][1][4];
-      tv[j][3] = tv[j][3] - tv[j][1] * tmp;
-
-      tmp = tmp1 * tmat[j][4][1];
-      tmat[j][4][2] =  tmat[j][4][2] - tmp * tmat[j][1][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][1][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][1][4];
-      tv[j][4] = tv[j][4] - tv[j][1] * tmp;
-
-      tmp1 = 1.0 / tmat[j][2][2];
-      tmp = tmp1 * tmat[j][3][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][2][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][2][4];
-      tv[j][3] = tv[j][3] - tv[j][2] * tmp;
-
-      tmp = tmp1 * tmat[j][4][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][2][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][2][4];
-      tv[j][4] = tv[j][4] - tv[j][2] * tmp;
-
-      tmp1 = 1.0 / tmat[j][3][3];
-      tmp = tmp1 * tmat[j][4][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][3][4];
-      tv[j][4] = tv[j][4] - tv[j][3] * tmp;
-
-      //---------------------------------------------------------------------
-      // back substitution
-      //---------------------------------------------------------------------
-      rsd[k][j][i][4] = tv[j][4] / tmat[j][4][4];
-
-      tv[j][3] = tv[j][3] 
-        - tmat[j][3][4] * rsd[k][j][i][4];
-      rsd[k][j][i][3] = tv[j][3] / tmat[j][3][3];
-
-      tv[j][2] = tv[j][2]
-        - tmat[j][2][3] * rsd[k][j][i][3]
-        - tmat[j][2][4] * rsd[k][j][i][4];
-      rsd[k][j][i][2] = tv[j][2] / tmat[j][2][2];
-
-      tv[j][1] = tv[j][1]
-        - tmat[j][1][2] * rsd[k][j][i][2]
-        - tmat[j][1][3] * rsd[k][j][i][3]
-        - tmat[j][1][4] * rsd[k][j][i][4];
-      rsd[k][j][i][1] = tv[j][1] / tmat[j][1][1];
-
-      tv[j][0] = tv[j][0]
-        - tmat[j][0][1] * rsd[k][j][i][1]
-        - tmat[j][0][2] * rsd[k][j][i][2]
-        - tmat[j][0][3] * rsd[k][j][i][3]
-        - tmat[j][0][4] * rsd[k][j][i][4];
-      rsd[k][j][i][0] = tv[j][0] / tmat[j][0][0];
-    }
-  }
-   #pragma acc data create(tmat[:ISIZ1][:5][:5], tv[:ISIZ1][:5])
-  for (diag = jst + 1; diag < jend; diag++) {
-    #pragma acc parallel loop private(t, diag, i, j, m, tmp, tmp1)
-    for (t = 0; t <= (jend - jst) - diag; t++) {
-      j = jend - 1 - t;
-      i = diag + t;
-      for (m = 0; m < 5; m++) {
-        tv[j][m] =  rsd[k][j][i][m]
-          - omega * ( b[j][i][0][m] * rsd[k][j-1][i][0]
-                    + c[j][i][0][m] * rsd[k][j][i-1][0]
-                    + b[j][i][1][m] * rsd[k][j-1][i][1]
-                    + c[j][i][1][m] * rsd[k][j][i-1][1]
-                    + b[j][i][2][m] * rsd[k][j-1][i][2]
-                    + c[j][i][2][m] * rsd[k][j][i-1][2]
-                    + b[j][i][3][m] * rsd[k][j-1][i][3]
-                    + c[j][i][3][m] * rsd[k][j][i-1][3]
-                    + b[j][i][4][m] * rsd[k][j-1][i][4]
-                    + c[j][i][4][m] * rsd[k][j][i-1][4] );
-      }
-
-      //---------------------------------------------------------------------
-      // diagonal block inversion
-      // 
-      // forward elimination
-      //---------------------------------------------------------------------
-      for (m = 0; m < 5; m++) {
-        tmat[j][m][0] = d[j][i][0][m];
-        tmat[j][m][1] = d[j][i][1][m];
-        tmat[j][m][2] = d[j][i][2][m];
-        tmat[j][m][3] = d[j][i][3][m];
-        tmat[j][m][4] = d[j][i][4][m];
-      }
-
-      tmp1 = 1.0 / tmat[j][0][0];
-      tmp = tmp1 * tmat[j][1][0];
-      tmat[j][1][1] =  tmat[j][1][1] - tmp * tmat[j][0][1];
-      tmat[j][1][2] =  tmat[j][1][2] - tmp * tmat[j][0][2];
-      tmat[j][1][3] =  tmat[j][1][3] - tmp * tmat[j][0][3];
-      tmat[j][1][4] =  tmat[j][1][4] - tmp * tmat[j][0][4];
-      tv[j][1] = tv[j][1] - tv[j][0] * tmp;
-
-      tmp = tmp1 * tmat[j][2][0];
-      tmat[j][2][1] =  tmat[j][2][1] - tmp * tmat[j][0][1];
-      tmat[j][2][2] =  tmat[j][2][2] - tmp * tmat[j][0][2];
-      tmat[j][2][3] =  tmat[j][2][3] - tmp * tmat[j][0][3];
-      tmat[j][2][4] =  tmat[j][2][4] - tmp * tmat[j][0][4];
-      tv[j][2] = tv[j][2] - tv[j][0] * tmp;
-
-      tmp = tmp1 * tmat[j][3][0];
-      tmat[j][3][1] =  tmat[j][3][1] - tmp * tmat[j][0][1];
-      tmat[j][3][2] =  tmat[j][3][2] - tmp * tmat[j][0][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][0][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][0][4];
-      tv[j][3] = tv[j][3] - tv[j][0] * tmp;
-
-      tmp = tmp1 * tmat[j][4][0];
-      tmat[j][4][1] =  tmat[j][4][1] - tmp * tmat[j][0][1];
-      tmat[j][4][2] =  tmat[j][4][2] - tmp * tmat[j][0][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][0][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][0][4];
-      tv[j][4] = tv[j][4] - tv[j][0] * tmp;
-
-      tmp1 = 1.0 / tmat[j][1][1];
-      tmp = tmp1 * tmat[j][2][1];
-      tmat[j][2][2] =  tmat[j][2][2] - tmp * tmat[j][1][2];
-      tmat[j][2][3] =  tmat[j][2][3] - tmp * tmat[j][1][3];
-      tmat[j][2][4] =  tmat[j][2][4] - tmp * tmat[j][1][4];
-      tv[j][2] = tv[j][2] - tv[j][1] * tmp;
-
-      tmp = tmp1 * tmat[j][3][1];
-      tmat[j][3][2] =  tmat[j][3][2] - tmp * tmat[j][1][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][1][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][1][4];
-      tv[j][3] = tv[j][3] - tv[j][1] * tmp;
-
-      tmp = tmp1 * tmat[j][4][1];
-      tmat[j][4][2] =  tmat[j][4][2] - tmp * tmat[j][1][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][1][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][1][4];
-      tv[j][4] = tv[j][4] - tv[j][1] * tmp;
-
-      tmp1 = 1.0 / tmat[j][2][2];
-      tmp = tmp1 * tmat[j][3][2];
-      tmat[j][3][3] =  tmat[j][3][3] - tmp * tmat[j][2][3];
-      tmat[j][3][4] =  tmat[j][3][4] - tmp * tmat[j][2][4];
-      tv[j][3] = tv[j][3] - tv[j][2] * tmp;
-
-      tmp = tmp1 * tmat[j][4][2];
-      tmat[j][4][3] =  tmat[j][4][3] - tmp * tmat[j][2][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][2][4];
-      tv[j][4] = tv[j][4] - tv[j][2] * tmp;
-
-      tmp1 = 1.0 / tmat[j][3][3];
-      tmp = tmp1 * tmat[j][4][3];
-      tmat[j][4][4] =  tmat[j][4][4] - tmp * tmat[j][3][4];
-      tv[j][4] = tv[j][4] - tv[j][3] * tmp;
-
-      //---------------------------------------------------------------------
-      // back substitution
-      //---------------------------------------------------------------------
-      rsd[k][j][i][4] = tv[j][4] / tmat[j][4][4];
-
-      tv[j][3] = tv[j][3] 
-        - tmat[j][3][4] * rsd[k][j][i][4];
-      rsd[k][j][i][3] = tv[j][3] / tmat[j][3][3];
-
-      tv[j][2] = tv[j][2]
-        - tmat[j][2][3] * rsd[k][j][i][3]
-        - tmat[j][2][4] * rsd[k][j][i][4];
-      rsd[k][j][i][2] = tv[j][2] / tmat[j][2][2];
-
-      tv[j][1] = tv[j][1]
-        - tmat[j][1][2] * rsd[k][j][i][2]
-        - tmat[j][1][3] * rsd[k][j][i][3]
-        - tmat[j][1][4] * rsd[k][j][i][4];
-      rsd[k][j][i][1] = tv[j][1] / tmat[j][1][1];
-
-      tv[j][0] = tv[j][0]
-        - tmat[j][0][1] * rsd[k][j][i][1]
-        - tmat[j][0][2] * rsd[k][j][i][2]
-        - tmat[j][0][3] * rsd[k][j][i][3]
-        - tmat[j][0][4] * rsd[k][j][i][4];
-      rsd[k][j][i][0] = tv[j][0] / tmat[j][0][0];
-    }
-  }
-
-  //sync_right( ldmx, ldmy, ldmz, v );
-}
-      //#pragma omp master
-      if (timeron) timer_stop(t_blts);
-    }
-    //#pragma omp barrier
-    //#pragma acc parallel loop private(k)
-    for (k = nz - 2; k > 0; k--) {
-      //---------------------------------------------------------------------
-      // form the strictly upper triangular part of the jacobian matrix
-      //---------------------------------------------------------------------
-      //#pragma omp master
-      if (timeron) timer_start(t_jacu);
-      jacu(k);
-      //#pragma omp master
-      {
-      if (timeron) timer_stop(t_jacu);
-
-      //---------------------------------------------------------------------
-      // perform the upper triangular solution
-      //---------------------------------------------------------------------
-      if (timeron) timer_start(t_buts);
-      }
-      buts( ISIZ1, ISIZ2, ISIZ3,
-            nx, ny, nz, k,
-            omega,
-            rsd, tv,
-            du, au, bu, cu,
-            ist, iend, jst, jend,
-            nx0, ny0 );
-      //#pragma omp master
-      if (timeron) timer_stop(t_buts);
-    }
-    //#pragma acc exit data copyout(u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5],d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
-    
-    //#pragma omp barrier
-
-    //---------------------------------------------------------------------
-    // update the variables
-    //---------------------------------------------------------------------
-    //#pragma omp master
-    if (timeron) timer_start(t_add);
-    tmp2 = tmp;
-    //#pragma omp for nowait
-    for (k = 1; k < nz-1; k++) {
-      for (j = jst; j < jend; j++) {
-        for (i = ist; i < iend; i++) {
-          for (m = 0; m < 5; m++) {
-            u[k][j][i][m] = u[k][j][i][m] + tmp2 * rsd[k][j][i][m];
-          }
-        }
-      }
-    }
-    } //end parallel
-    if (timeron) timer_stop(t_add);
-
-    //---------------------------------------------------------------------
-    // compute the max-norms of newton iteration corrections
-    //---------------------------------------------------------------------
-    if ( (istep % inorm) == 0 ) {
-      if (timeron) timer_start(t_l2norm);
-      l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0,
-              ist, iend, jst, jend,
-              rsd, delunm );
-      if (timeron) timer_stop(t_l2norm);
-      /*
-      if ( ipr == 1 ) {
-        printf(" \n RMS-norm of SSOR-iteration correction "
-               "for first pde  = %12.5E\n"
-               " RMS-norm of SSOR-iteration correction "
-               "for second pde = %12.5E\n"
-               " RMS-norm of SSOR-iteration correction "
-               "for third pde  = %12.5E\n"
-               " RMS-norm of SSOR-iteration correction "
-               "for fourth pde = %12.5E\n",
-               " RMS-norm of SSOR-iteration correction "
-               "for fifth pde  = %12.5E\n", 
-               delunm[0], delunm[1], delunm[2], delunm[3], delunm[4]); 
-      } else if ( ipr == 2 ) {
-        printf("(%5d,%15.6f)\n", istep, delunm[4]);
-      }
-      */
-    }
- 
-    //---------------------------------------------------------------------
-    // compute the steady-state residuals
-    //---------------------------------------------------------------------
-    rhs();
- 
-    //---------------------------------------------------------------------
-    // compute the max-norms of newton iteration residuals
-    //---------------------------------------------------------------------
-    if ( ((istep % inorm ) == 0 ) || ( istep == itmax ) ) {
-      if (timeron) timer_start(t_l2norm);
-      l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0,
-              ist, iend, jst, jend, rsd, rsdnm );
-      if (timeron) timer_stop(t_l2norm);
-      /*
-      if ( ipr == 1 ) {
-        printf(" \n RMS-norm of steady-state residual for "
-               "first pde  = %12.5E\n"
-               " RMS-norm of steady-state residual for "
-               "second pde = %12.5E\n"
-               " RMS-norm of steady-state residual for "
-               "third pde  = %12.5E\n"
-               " RMS-norm of steady-state residual for "
-               "fourth pde = %12.5E\n"
-               " RMS-norm of steady-state residual for "
-               "fifth pde  = %12.5E\n", 
-               rsdnm[0], rsdnm[1], rsdnm[2], rsdnm[3], rsdnm[4]);
-      }
-      */
-    }
-
-    //---------------------------------------------------------------------
-    // check the newton-iteration residuals against the tolerance levels
-    //---------------------------------------------------------------------
-    if ( ( rsdnm[0] < tolrsd[0] ) && ( rsdnm[1] < tolrsd[1] ) &&
-         ( rsdnm[2] < tolrsd[2] ) && ( rsdnm[3] < tolrsd[3] ) &&
-         ( rsdnm[4] < tolrsd[4] ) ) {
-      //if (ipr == 1 ) {
-      printf(" \n convergence was achieved after %4d pseudo-time steps\n",
-          istep);
-      //}
-      break;
-    }
-  }
-  // MAIN END
-  timer_stop(1);
-  maxtime = timer_read(1);
-  
-}
-
-
-void ssor1(int niter)
-{
-  //---------------------------------------------------------------------
-  // local variables
-  //---------------------------------------------------------------------
-  int i, j, k, m, n;
-  int istep;
-  double tmp, tmp2, tv[ISIZ2][ISIZ1][5];
-  double delunm[5];
-
-  //---------------------------------------------------------------------
-  // begin pseudo-time stepping iterations
-  //---------------------------------------------------------------------
-  tmp = 1.0 / ( omega * ( 2.0 - omega ) );
-
-  //---------------------------------------------------------------------
-  // initialize a,b,c,d to zero (guarantees that page tables have been
-  // formed, if applicable on given architecture, before timestepping).
-  //---------------------------------------------------------------------
-  //#pragma omp parallel default(shared) private(m,n,i,j)
-  {
-  //#pragma omp for nowait
-  for (j = jst; j < jend; j++) {
-    for (i = ist; i < iend; i++) {
-      for (n = 0; n < 5; n++) {
-        for (m = 0; m < 5; m++) {
-          a[j][i][n][m] = 0.0;
-          b[j][i][n][m] = 0.0;
-          c[j][i][n][m] = 0.0;
-          d[j][i][n][m] = 0.0;
-        }
-      }
-    }
-  }
-  //#pragma omp for nowait
-  for (j = jend - 1; j >= jst; j--) {
-    for (i = iend - 1; i >= ist; i--) {
-      for (n = 0; n < 5; n++) {
-        for (m = 0; m < 5; m++) {
-          au[j][i][n][m] = 0.0;
-          bu[j][i][n][m] = 0.0;
-          cu[j][i][n][m] = 0.0;
-          du[j][i][n][m] = 0.0;
-        }
-      }
-    }
-  }
-  } //end parallel
-  for (i = 1; i <= t_last; i++) {
-    timer_clear(i);
-  }
-
-  //---------------------------------------------------------------------
-  // compute the steady-state residuals
-  //---------------------------------------------------------------------
-  rhs();
-
-  //---------------------------------------------------------------------
-  // compute the L2 norms of newton iteration residuals
-  //---------------------------------------------------------------------
-  l2norm( ISIZ1, ISIZ2, ISIZ3, nx0, ny0, nz0,
-          ist, iend, jst, jend, rsd, rsdnm );
-
-  for (i = 1; i <= t_last; i++) {
-    timer_clear(i);
-  }
-  timer_start(1);
-
-  //---------------------------------------------------------------------
-  // the timestep loop
-  //---------------------------------------------------------------------
-  for (istep = 1; istep <= niter; istep++) {
-    if ((istep % 20) == 0 || istep == itmax || istep == 1) {
-      if (niter > 1) printf(" Time step %4d\n", istep);
-    }
-
-    //---------------------------------------------------------------------
-    // perform SSOR iteration
-    //---------------------------------------------------------------------
-    //#pragma omp parallel default(shared) private(i,j,k,m,tmp2) \
-                shared(ist,iend,jst,jend,nx,ny,nz,nx0,ny0,omega)
-    {
-    //#pragma omp master
-    if (timeron) timer_start(t_rhs);
-    tmp2 = dt;
-    //#pragma omp for nowait
-    for (k = 1; k < nz - 1; k++) {
-      for (j = jst; j < jend; j++) {
-        for (i = ist; i < iend; i++) {
-          for (m = 0; m < 5; m++) {
-            rsd[k][j][i][m] = tmp2 * rsd[k][j][i][m];
-          }
-        }
-      }
-    }
-    //#pragma omp master
-    if (timeron) timer_stop(t_rhs);
-
-    mthreadnum = 0;
-    //mthreadnum = omp_get_num_threads() - 1;
-    if (mthreadnum > jend - jst) mthreadnum = jend - jst;
-    iam = 0;
-    //iam = omp_get_thread_num();
-    if (iam <= mthreadnum) isync[iam] = 0;
-    //#pragma omp barrier
-    //#pragma acc parallel loop private(k)
-    for (k = 1; k < nz -1; k++) {
-      //---------------------------------------------------------------------
-      // form the lower triangular part of the jacobian matrix
-      //---------------------------------------------------------------------
-      //#pragma omp master
-      if (timeron) timer_start(t_jacld);
-      jacld(k);
-      //
       //#pragma omp master
       {
       if (timeron) timer_stop(t_jacld);
@@ -702,7 +186,7 @@ void ssor1(int niter)
       if (timeron) timer_stop(t_blts);
     }
     //#pragma omp barrier
-    //#pragma acc parallel loop private(k)
+ 
     for (k = nz - 2; k > 0; k--) {
       //---------------------------------------------------------------------
       // form the strictly upper triangular part of the jacobian matrix
@@ -821,8 +305,8 @@ void ssor1(int niter)
       break;
     }
   }
+
   timer_stop(1);
   maxtime = timer_read(1);
 }
-
 

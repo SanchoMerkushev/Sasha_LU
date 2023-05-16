@@ -31,7 +31,7 @@ void buts(int ldmx, int ldmy, int ldmz, int nx, int ny, int nz, int k,
 
    //#pragma acc parallel loop private(i, j, m)
   //#pragma omp for schedule(static) nowait
-  #pragma acc parallel loop private(i, j, m)
+  //#pragma acc parallel loop private(i, j, m)
   for (j = jend - 1; j >= jst; j--) {
     for (i = iend - 1; i >= ist; i--) {
       for (m = 0; m < 5; m++) {

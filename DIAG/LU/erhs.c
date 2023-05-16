@@ -74,7 +74,7 @@ void erhs()
   }
 
   //#pragma omp for schedule(static)
-  #pragma acc parallel loop
+  //#pragma acc parallel loop
   for (k = 0; k < nz; k++) {
     zeta = ( (double)k ) / ( nz - 1 );
     for (j = 0; j < ny; j++) {
