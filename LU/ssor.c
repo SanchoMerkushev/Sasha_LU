@@ -48,7 +48,6 @@ void ssor(int niter)
   //#pragma omp parallel default(shared) private(m,n,i,j)
   //#pragma omp for nowait
   //#pragma acc parallel private(k,m,n,i,j)
-  printf("rrrrr\n");
     for (j = jst; j < jend; j++) {
       for (i = ist; i < iend; i++) {
         for (n = 0; n < 5; n++) {
@@ -75,7 +74,6 @@ void ssor(int niter)
         }
       }
     }
-      printf("tttt\n");
   for (i = 1; i <= t_last; i++) {
     timer_clear(i);
   }

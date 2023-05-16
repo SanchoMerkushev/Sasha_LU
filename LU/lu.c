@@ -101,6 +101,7 @@ logical timeron;
 
 int main(int argc, char *argv[])
 {
+  printf("tttt\n");
   char Class;
   logical verified;
   double mflops;
