@@ -90,5 +90,4 @@ void read_input()
   printf(" Iterations:                  %5d\n", itmax);
   printf(" Number of available threads: %5d\n", omp_get_max_threads());
   printf("\n");
-  printf("size %d %d %d\n", ISIZ1, ISIZ2, ISIZ3);
 }
