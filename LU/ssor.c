@@ -76,15 +76,13 @@ double au[ISIZ2][ISIZ1/2*2+1][5][5];
 double bu[ISIZ2][ISIZ1/2*2+1][5][5];
 double cu[ISIZ2][ISIZ1/2*2+1][5][5];
 double du[ISIZ2][ISIZ1/2*2+1][5][5];*/
-double ****a, ****b, ****c, ****d,****au, ****bu, ****cu, ****du;
+//double ****a, ****b, ****c, ****d,****au, ****bu, ****cu, ****du;
 printf("AFTER\n");
   //---------------------------------------------------------------------
   // the timestep loop
   //---------------------------------------------------------------------
   #pragma acc data copyin(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], tmat_blts[:ISIZ1][:ISIZ1][:5][:5], tv_blts[:ISIZ1][:ISIZ1][:5], tmat_buts[:ISIZ1][:ISIZ1][:5][:5], tv_buts[:ISIZ2][:ISIZ1][:5], delunm[:5]) copy(rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5]) create(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
   { // DATA START
-    printf("hhhh\n");
-    printf("hhhh\n");
     printf("kkkk\n");
     #pragma acc parallel loop
     for (j = 0; j < ISIZ1; j++) {
@@ -92,7 +90,7 @@ printf("AFTER\n");
       for (i = 0; i < ISIZ1/2*2+1; i++) {
         for (n = 0; n < 5; n++) {
           for (m = 0; m < 5; m++) {
-              printf("klll\n");
+            printf("klll\n");
             a[j][i][n][m] = 0.0;
             b[j][i][n][m] = 0.0;
             c[j][i][n][m] = 0.0;
