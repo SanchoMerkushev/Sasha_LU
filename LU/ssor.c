@@ -83,18 +83,14 @@ printf("AFTER\n");
   //---------------------------------------------------------------------
   #pragma acc data copyin(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], tmat_blts[:ISIZ1][:ISIZ1][:5][:5], tv_blts[:ISIZ1][:ISIZ1][:5], tmat_buts[:ISIZ1][:ISIZ1][:5][:5], tv_buts[:ISIZ2][:ISIZ1][:5], delunm[:5]) copy(rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5]) create(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
   { // DATA START
-   printf("ttt\n");
-    #pragma acc parallel private(m,n,i,j)
+    printf("hhhh\n");
+    //#pragma acc parallel private(m,n,i,j)
     for (j = 0; j < ISIZ1; j++) {
-      printf("jjjjjj\n");
-      #pragma acc loop
+      //#pragma acc loop
       for (i = 0; i < ISIZ1/2*2+1; i++) {
-            printf("iiiii\n");
         for (n = 0; n < 5; n++) {
           for (m = 0; m < 5; m++) {
-            printf("yyyy\n");
             a[j][i][n][m] = 0.0;
-            printf("ppppp\n");
             b[j][i][n][m] = 0.0;
             c[j][i][n][m] = 0.0;
             d[j][i][n][m] = 0.0;
@@ -102,11 +98,11 @@ printf("AFTER\n");
         }
       }
     }
-    printf("kkkk\n");
+    printf("uuuu\n");
   //#pragma omp for nowait
-    #pragma acc parallel private(m,n,i,j)
+    #//pragma acc parallel private(m,n,i,j)
     for (j = 0; j < ISIZ1; j++) {
-      #pragma acc loop
+      //#pragma acc loop
       for (i = 0; i < ISIZ1/2*2+1; i++) {
         for (n = 0; n < 5; n++) {
           for (m = 0; m < 5; m++) {
