@@ -66,12 +66,12 @@ extern double dssp;
 // and l2norm are similarly padded
 //---------------------------------------------------------------------
 /* common/cvar/ */
-extern double u    [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
-extern double rsd  [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
-extern double frct [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
-extern double flux [ISIZ1][5];
-extern double qs   [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
-extern double rho_i[ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
+extern float u    [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
+extern float rsd  [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
+extern float frct [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
+extern float flux [ISIZ1][5];
+extern float qs   [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
+extern float rho_i[ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
 
 //---------------------------------------------------------------------
 // output control parameters
@@ -87,16 +87,16 @@ extern double dt, omega, tolrsd[5], rsdnm[5], errnm[5], frc, ttotal;
 extern int itmax, invert;
 
 /* common/cjac/ */
-extern double a[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double b[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double c[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double d[ISIZ2][ISIZ1/2*2+1][5][5];
+extern float a[ISIZ2][ISIZ1/2*2+1][5][5];
+extern float b[ISIZ2][ISIZ1/2*2+1][5][5];
+extern float c[ISIZ2][ISIZ1/2*2+1][5][5];
+extern float d[ISIZ2][ISIZ1/2*2+1][5][5];
 
 /* common/cjacu/ */
-extern double au[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double bu[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double cu[ISIZ2][ISIZ1/2*2+1][5][5];
-extern double du[ISIZ2][ISIZ1/2*2+1][5][5];
+extern float au[ISIZ2][ISIZ1/2*2+1][5][5];
+extern float bu[ISIZ2][ISIZ1/2*2+1][5][5];
+extern float cu[ISIZ2][ISIZ1/2*2+1][5][5];
+extern float du[ISIZ2][ISIZ1/2*2+1][5][5];
 
 
 //---------------------------------------------------------------------
