@@ -90,6 +90,7 @@ printf("AFTER\n");
       for (i = 0; i < ISIZ1/2*2+1; i++) {
         for (n = 0; n < 5; n++) {
           for (m = 0; m < 5; m++) {
+              printf("klll\n");
             a[j][i][n][m] = 0.0;
             b[j][i][n][m] = 0.0;
             c[j][i][n][m] = 0.0;
