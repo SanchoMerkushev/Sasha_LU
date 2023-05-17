@@ -51,12 +51,12 @@ double dssp;
 // and l2norm are similarly padded
 //---------------------------------------------------------------------
 /* common/cvar/ */
-float u    [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
-float rsd  [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
-float frct [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
-float flux [ISIZ1][5];
-float qs   [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
-float rho_i[ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
+double u    [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
+double rsd  [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
+double frct [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
+double flux [ISIZ1][5];
+double qs   [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
+double rho_i[ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
 
 //---------------------------------------------------------------------
 // output control parameters

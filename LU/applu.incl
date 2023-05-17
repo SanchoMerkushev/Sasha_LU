@@ -66,12 +66,12 @@ extern double dssp;
 // and l2norm are similarly padded
 //---------------------------------------------------------------------
 /* common/cvar/ */
-extern float u    [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
-extern float rsd  [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
-extern float frct [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
-extern float flux [ISIZ1][5];
-extern float qs   [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
-extern float rho_i[ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
+extern double u    [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
+extern double rsd  [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
+extern double frct [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1][5];
+extern double flux [ISIZ1][5];
+extern double qs   [ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
+extern double rho_i[ISIZ3][ISIZ2/2*2+1][ISIZ1/2*2+1];
 
 //---------------------------------------------------------------------
 // output control parameters
