@@ -100,7 +100,7 @@ printf("AFTER\n");
       }
     }
          printf("AFTER FIRST\n");
-               printf("BEFORE SECOND\n");
+          printf("BEFORE SECOND\n");
   //#pragma omp for nowait
     #pragma acc parallel loop
     for (j = 0; j < ISIZ1; j++) {
@@ -110,7 +110,6 @@ printf("AFTER\n");
           for (m = 0; m < 5; m++) {
             au[j][i][n][m] = 0.0;
             bu[j][i][n][m] = 0.0;
-                     printf("temp\n");
             cu[j][i][n][m] = 0.0;
             du[j][i][n][m] = 0.0;
           }
