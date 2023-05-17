@@ -98,6 +98,7 @@ printf("AFTER\n");
         }
       }
     }
+    printf("kkkk\n");
   //#pragma omp for nowait
     #pragma acc parallel private(k,m,n,i,j)
     for (j = 0; j < ISIZ1; j++) {
