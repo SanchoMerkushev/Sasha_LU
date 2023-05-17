@@ -72,12 +72,14 @@ void ssor(int niter)
 printf("BEFORE\n");
 double a[ISIZ2][ISIZ1/2*2+1][5][5];
 double b[ISIZ2][ISIZ1/2*2+1][5][5];
-double c[1][ISIZ1/2*2+1][5][5];
+double c[ISIZ2][ISIZ1/2*2+1][5][5];
 double d[ISIZ2][ISIZ1/2*2+1][5][5];
 double au[ISIZ2][ISIZ1/2*2+1][5][5];
 double bu[ISIZ2][ISIZ1/2*2+1][5][5];
 double cu[ISIZ2][ISIZ1/2*2+1][5][5];
 double du[ISIZ2][ISIZ1/2*2+1][5][5];
+int kg;
+kg = 6 * 9;
 printf("AFTER\n");
   //---------------------------------------------------------------------
   // the timestep loop
