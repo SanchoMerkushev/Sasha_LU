@@ -86,8 +86,10 @@ printf("AFTER\n");
    printf("ttt\n");
     #pragma acc parallel private(m,n,i,j)
     for (j = 0; j < ISIZ1; j++) {
+      printf("jjjjjj\n");
       #pragma acc loop
       for (i = 0; i < ISIZ1/2*2+1; i++) {
+            printf("iiiii\n");
         for (n = 0; n < 5; n++) {
           for (m = 0; m < 5; m++) {
             printf("yyyy\n");
