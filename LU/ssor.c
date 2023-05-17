@@ -90,7 +90,9 @@ printf("AFTER\n");
       for (i = 0; i < ISIZ1/2*2+1; i++) {
         for (n = 0; n < 5; n++) {
           for (m = 0; m < 5; m++) {
+            printf("yyyy\n");
             a[j][i][n][m] = 0.0;
+            printf("ppppp\n");
             b[j][i][n][m] = 0.0;
             c[j][i][n][m] = 0.0;
             d[j][i][n][m] = 0.0;
