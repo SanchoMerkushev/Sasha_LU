@@ -55,10 +55,7 @@ void ssor(int niter)
   //---------------------------------------------------------------------
   // compute the steady-state residuals
   //---------------------------------------------------------------------
-   printf("yyy\n");
   rhs();
-
- printf("rrrr\n");
   //---------------------------------------------------------------------
   // compute the L2 norms of newton iteration residuals
   //---------------------------------------------------------------------
@@ -69,27 +66,14 @@ void ssor(int niter)
     timer_clear(i);
   }
   timer_start(1);
-printf("BEFORE\n");
-double a[ISIZ2][ISIZ1/2*2+1][5][5];
-double b[ISIZ2][ISIZ1/2*2+1][5][5];
-double c[ISIZ2][ISIZ1/2*2+1][5][5];
-double d[ISIZ2][ISIZ1/2*2+1][5][5];
-double au[ISIZ2][ISIZ1/2*2+1][5][5];
-double bu[ISIZ2][ISIZ1/2*2+1][5][5];
-double cu[ISIZ2][ISIZ1/2*2+1][5][5];
-double du[ISIZ2][ISIZ1/2*2+1][5][5];
-int kg;
-kg = 6 * 9;
-printf("AFTER\n");
   //---------------------------------------------------------------------
   // the timestep loop
   //---------------------------------------------------------------------
   #pragma acc data copyin(frct[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], flux [:ISIZ1][:5], qs[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], rho_i[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1], tmat_blts[:ISIZ1][:ISIZ1][:5][:5], tv_blts[:ISIZ1][:ISIZ1][:5], tmat_buts[:ISIZ1][:ISIZ1][:5][:5], tv_buts[:ISIZ2][:ISIZ1][:5], delunm[:5]) copy(rsd[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5], u[:ISIZ3][:ISIZ2/2*2+1][:ISIZ1/2*2+1][:5]) create(a[:ISIZ2][:ISIZ1/2*2+1][:5][:5], b[:ISIZ2][:ISIZ1/2*2+1][:5][:5], c[:ISIZ2][:ISIZ1/2*2+1][:5][:5], d[:ISIZ2][:ISIZ1/2*2+1][:5][:5], au[:ISIZ2][:ISIZ1/2*2+1][:5][:5], bu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], cu[:ISIZ2][:ISIZ1/2*2+1][:5][:5], du[:ISIZ2][:ISIZ1/2*2+1][:5][:5])
   { // DATA START
-           printf("BEFORE FIRST\n");
     #pragma acc parallel loop
     for (j = 0; j < ISIZ1; j++) {
-      //#pragma acc loop
+      #pragma acc loop
       for (i = 0; i < ISIZ1/2*2+1; i++) {
         for (n = 0; n < 5; n++) {
           for (m = 0; m < 5; m++) {
@@ -101,12 +85,10 @@ printf("AFTER\n");
         }
       }
     }
-         printf("AFTER FIRST\n");
-          printf("BEFORE SECOND\n");
   //#pragma omp for nowait
     #pragma acc parallel loop
     for (j = 0; j < ISIZ1; j++) {
-      //#pragma acc loop
+      #pragma acc loop
       for (i = 0; i < ISIZ1/2*2+1; i++) {
         for (n = 0; n < 5; n++) {
           for (m = 0; m < 5; m++) {
@@ -118,9 +100,7 @@ printf("AFTER\n");
         }
       }
     }
-      printf("AFTER SECOND\n");
-  //#pragma acc parallel
-  //{ // PARALLEL START
+
   for (istep = 1; istep <= niter; istep++) {
     if ((istep % 20) == 0 || istep == itmax || istep == 1) {
       if (niter > 1) printf(" Time step %4d\n", istep);
